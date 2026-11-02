@@ -1,0 +1,11 @@
+{
+  "name": "living-spec",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Imperative Gherkin steps and a living spec for Storybook component contracts (working name, incubated in the Camperoni frontend).",
+  "license": "UNLICENSED",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
