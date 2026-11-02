@@ -24,20 +24,8 @@ Each step is data: a keyword, its wording (a [Cucumber expression](https://githu
 a one-line meaning, an example and a run function. Run functions query the DOM by test id and act through an
 injected driver (click, hover, geolocation), so they don't depend on a browser runner.
 
-| Step                                                                                                    |
-| ------------------------------------------------------------------------------------------------------- |
-| `Then I should assert that the element with id {string} contains {string}`                              |
-| `Then I should assert that the element with id {string} has an exact value of {string}`                 |
-| `Then I should assert that the element with id {string} is of type {string}`                            |
-| `Then I should assert that the element with id {string} has an attribute {string} with value {string}` |
-| `Then I should assert that the {string} element {string} visible`                                       |
-| `When I click on the element with id {string}`                                                          |
-| `When I click on the element which has an attribute {string} with value {string}`                       |
-| `When I {string} over the element with id {string}`                                                     |
-| `When I wait for {string} seconds`                                                                      |
-| `When I {string} geolocation and set the location to {string}, {string}`                                |
-
-The wording is the old E2E steps' wording, unchanged, so scenarios move over word for word.
+v1 holds the 10 generic steps the Storybook scenarios use. Their wording is the old E2E steps' wording,
+unchanged, so scenarios move over word for word.
 
 The DOM rules match the old Playwright steps:
 
@@ -65,3 +53,20 @@ registerSteps(
 
 `driver` implements `click(element)`, `hover(element)` and `setGeolocation(permission, latitude, longitude)`
 for the runner in use. The test-id attribute defaults to `data-testid`.
+
+## Step catalog
+
+`bin/catalog.ts` writes every available step (keyword, wording, parameter types, meaning, example, and
+whether it comes from the library or the project) as `steps.json` and a readable `steps.md`. It runs on
+Node's built-in TypeScript support, without a browser:
+
+```sh
+node packages/living-spec/bin/catalog.ts --out <dir> [--project-steps <module>] [--command <text>] [--check]
+```
+
+A `--project-steps` module exports `projectSteps`, an array of step definitions. `--check` writes nothing
+and exits 1 when the files in `<dir>` differ from what the definitions produce; `--command` is the command
+the files and the error message tell people to run.
+
+In Camperoni the catalog is committed in `docs/living-spec/`; `npm run living-spec:catalog` regenerates it,
+and CI runs `npm run living-spec:catalog:check`.
