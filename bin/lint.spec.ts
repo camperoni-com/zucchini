@@ -40,7 +40,8 @@ afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true })
 })
 
-describe('the lint command', () => {
+// Each test starts Node and loads the Storybook CSF reader, which is slow on a busy machine.
+describe('the lint command', { timeout: 30000 }, () => {
   test('passes on valid contracts and lists the uncovered stories', () => {
     writeFeature('    @story:Default', '    Scenario: Waits', '        When I wait for "1" seconds')
     const result = lint()

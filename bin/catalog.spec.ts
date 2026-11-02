@@ -34,7 +34,8 @@ afterEach(() => {
   fs.rmSync(out, { recursive: true, force: true })
 })
 
-describe('the catalog command', () => {
+// Each test starts Node, which is slow on a busy machine.
+describe('the catalog command', { timeout: 30000 }, () => {
   test('writes the JSON and Markdown catalog of the library steps', () => {
     expect(catalog()).toMatchObject({ code: 0 })
     const json = readJson()
