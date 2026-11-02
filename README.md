@@ -110,3 +110,37 @@ node packages/living-spec/bin/lint.ts --catalog <steps.json> [--root <dir>]
 
 Story names come from Storybook's CSF reader, an internal Storybook API; `src/contracts/stories.ts` is the
 only module that uses it. In Camperoni, `npm run living-spec:lint` lints `src/` and runs in CI.
+
+## Spec view in Storybook
+
+Each component's docs page shows its contracts after the default autodocs blocks: every scenario with the
+stories it runs on (linked), its steps, its Examples, and its last result (passed, failed, or not run yet).
+A `#` comment line among a scenario's steps starts a named, collapsible group of the steps after it, up to
+the next comment or blank line. A component without a contract shows a short "no contract" note. The
+overview page (`src/storybook/Overview.mdx`, "Living Spec/Contracts") lists every contract and the stories
+without one.
+
+- `src/view/viewModel.ts` turns a parsed feature, its bindings and optional results into the view model.
+- `src/storybook/vitePlugin.ts` builds the view models in Node and serves them as the virtual module
+  `virtual:living-spec/contracts`, in dev and in the build. It uses only `resolveId`, `load` and
+  `addWatchFile`, which are stable across Vite 5 to 8.
+- `src/storybook/ContractsDocsPage.tsx` is the docs page: Storybook's `DocsPage` followed by the contracts.
+
+Wiring, as in Camperoni's `.storybook/`:
+
+```ts
+// main.ts
+stories: [..., '../packages/living-spec/src/storybook/*.mdx'],
+viteFinal: (config) => ({
+  ...config,
+  plugins: [...(config.plugins ?? []), livingSpecPlugin({ dir: 'src', results: 'test-results/living-spec.json' })],
+}),
+
+// preview.ts
+parameters: { docs: { page: ContractsDocsPage } }
+```
+
+The results file is optional; without it every scenario shows "not run yet". The contract runner will write
+it as `{ "ranAt": "<ISO time>", "scenarios": [{ "file", "line", "status", "durationMs", "error" }] }`, where
+`file` is the feature path relative to the project root and `line` is the line of the scenario, or of the
+Examples row for an outline.

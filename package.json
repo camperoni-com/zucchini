@@ -6,12 +6,17 @@
   "license": "UNLICENSED",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./storybook": "./src/storybook/ContractsDocsPage.tsx",
+    "./vite": "./src/storybook/vitePlugin.ts"
   },
   "peerDependencies": {
     "@cucumber/cucumber-expressions": "18.0.1",
     "@cucumber/gherkin": "34.0.0",
     "@cucumber/messages": "27.2.0",
-    "storybook": "^10.6.5"
+    "@storybook/addon-docs": "^10.6.5",
+    "react": "^18.0.0",
+    "storybook": "^10.6.5",
+    "vite": ">=5.0.0 <9.0.0"
   }
 }
