@@ -4,12 +4,11 @@
 //
 //   node packages/living-spec/bin/lint.ts --catalog <steps.json> [--root <dir>]
 import fs from 'node:fs'
-import path from 'node:path'
 import { parseArgs } from 'node:util'
 
 import type { Catalog } from '../src/catalog/catalog.ts'
 import { formatLintResult, lintContracts } from '../src/contracts/lint.ts'
-import { readStoryFile } from '../src/contracts/stories.ts'
+import { findContracts } from '../src/contracts/load.ts'
 
 const { values } = parseArgs({
   options: {
@@ -24,18 +23,11 @@ if (!values.catalog) {
 }
 
 const catalog: Catalog = JSON.parse(fs.readFileSync(values.catalog, 'utf8'))
-const glob = (pattern: string) => fs.globSync(path.join(values.root, pattern)).sort()
+const { features, storyFiles } = await findContracts({ dir: values.root })
 
-const featureFiles = glob('**/*.feature')
-const storyFiles = await Promise.all(glob('**/*.stories.{ts,tsx,js,jsx,mjs}').map(readStoryFile))
+const result = lintContracts({ features, storyFiles, steps: catalog.steps })
 
-const result = lintContracts({
-  features: featureFiles.map((file) => ({ file, text: fs.readFileSync(file, 'utf8') })),
-  storyFiles,
-  steps: catalog.steps,
-})
-
-const report = formatLintResult(result, featureFiles.length)
+const report = formatLintResult(result, features.length)
 if (result.problems.length) {
   process.stderr.write(report)
   process.exit(1)
