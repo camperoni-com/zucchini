@@ -18,11 +18,13 @@ export const compileWording = (wording: string, registry = new ParameterTypeRegi
   }
 }
 
-export type CompiledStep<T extends StepDefinition = StepDefinition> = ReturnType<typeof compileWording> & {
+export type CompiledStep<T extends Pick<StepDefinition, 'wording'> = StepDefinition> = ReturnType<
+  typeof compileWording
+> & {
   step: T
 }
 
-export const compileSteps = <T extends StepDefinition>(steps: readonly T[]): CompiledStep<T>[] => {
+export const compileSteps = <T extends Pick<StepDefinition, 'wording'>>(steps: readonly T[]): CompiledStep<T>[] => {
   const registry = new ParameterTypeRegistry()
   return steps.map((step) => ({ step, ...compileWording(step.wording, registry) }))
 }
