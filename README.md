@@ -12,7 +12,27 @@ then. Until that move:
 - its dependencies come from the root `package.json`, so CI needs no second install;
 - its unit specs run in the root Vitest suite, and the root type check and lint cover it.
 
-## The contracts aren't run yet
+## Contracts
+
+A component's contract is a Gherkin feature file beside its stories:
+
+- `<Component>.feature` sits beside `<Component>.stories.tsx` and covers the story file whose title ends in
+  `<Component>`;
+- a `@story:Story_Name` tag binds a scenario to one story (`_` stands for a space, since Gherkin tags can't
+  contain one);
+- a `story` column in an outline's Examples binds each row to the story it names;
+- scenario titles are free text.
+
+```gherkin
+Feature: MapViewComponent
+
+    @story:Map_View_Default
+    Scenario Outline: Verify map can be zoomed
+        When I click on the element which has an attribute "aria-label" with value "<action>"
+        ...
+```
+
+### The contracts aren't run yet
 
 The contracts beside the stories are linted but not executed. They will run as Vitest browser tests once
 the repo is on Vite 7 and Vitest 4 (the runner slice of PRD #1428). Until then, the old Storybook E2E
@@ -70,3 +90,23 @@ the files and the error message tell people to run.
 
 In Camperoni the catalog is committed in `docs/living-spec/`; `npm run living-spec:catalog` regenerates it,
 and CI runs `npm run living-spec:catalog:check`.
+
+## Contract linter
+
+`bin/lint.ts` parses every `*.feature` under `--root` with the official Gherkin parser and reports, as
+`file:line: message`:
+
+- a step that matches no step in the catalog, or more than one (outline steps are checked with their
+  Examples values filled in);
+- a `@story:` tag or `story` value naming a story that isn't in the matching story file;
+- a scenario with no story binding, or with two;
+- a feature file with no story file beside it, or one that doesn't parse.
+
+It then lists the stories without a contract, and exits 1 if there was any problem.
+
+```sh
+node packages/living-spec/bin/lint.ts --catalog <steps.json> [--root <dir>]
+```
+
+Story names come from Storybook's CSF reader, an internal Storybook API; `src/contracts/stories.ts` is the
+only module that uses it. In Camperoni, `npm run living-spec:lint` lints `src/` and runs in CI.
