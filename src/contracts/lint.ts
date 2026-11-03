@@ -19,6 +19,14 @@ export interface UncoveredStories {
   stories: string[]
 }
 
+/** Where the catalog's steps come from, named in the hint on unknown and ambiguous steps. */
+export interface CatalogSource {
+  /** The catalog file, e.g. `docs/living-spec/steps.json`. */
+  file: string
+  /** The command that regenerates it (the catalog's `generatedBy`). */
+  command: string
+}
+
 export interface LintResult {
   problems: Problem[]
   uncovered: UncoveredStories[]
@@ -51,13 +59,18 @@ export const lintContracts = ({
   features,
   storyFiles,
   steps,
+  catalog,
 }: {
   features: readonly ContractFile[]
   storyFiles: readonly StoryFile[]
   /** The catalog's steps; only their wording matters for matching. */
   steps: readonly { wording: string }[]
+  catalog?: CatalogSource
 }): LintResult => {
   const compiled = compileSteps(steps)
+  const catalogName = catalog?.file ?? 'the step catalog'
+  // A step added to the code but not yet to the committed catalog shows up as unknown, so say how to fix that.
+  const hint = `If you just added or changed a step definition, run ${catalog ? `\`${catalog.command}\`` : 'the catalog command'}.`
   const problems: Problem[] = []
   const covered = new Set<string>()
   let scenarios = 0
@@ -89,12 +102,16 @@ export const lintContracts = ({
         const written = `${astStep?.keyword.trim() ?? ''} ${pickleStep.text}`.trim()
         const matches = compiled.filter((c) => c.matches(pickleStep.text))
         if (matches.length === 0) {
-          problems.push({ file, line, message: `unknown step "${written}"` })
+          problems.push({
+            file,
+            line,
+            message: `unknown step "${written}": no step in ${catalogName} matches it. ${hint}`,
+          })
         } else if (matches.length > 1) {
           problems.push({
             file,
             line,
-            message: `ambiguous step "${written}" matches ${matches.length} steps: ${matches.map((m) => `"${m.step.wording}"`).join(', ')}`,
+            message: `ambiguous step "${written}" matches ${matches.length} steps in ${catalogName}: ${matches.map((m) => `"${m.step.wording}"`).join(', ')}. ${hint}`,
           })
         }
       }

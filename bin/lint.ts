@@ -25,7 +25,12 @@ if (!values.catalog) {
 const catalog: Catalog = JSON.parse(fs.readFileSync(values.catalog, 'utf8'))
 const { features, storyFiles } = await findContracts({ dir: values.root })
 
-const result = lintContracts({ features, storyFiles, steps: catalog.steps })
+const result = lintContracts({
+  features,
+  storyFiles,
+  steps: catalog.steps,
+  catalog: { file: values.catalog, command: catalog.generatedBy },
+})
 
 const report = formatLintResult(result, features.length)
 if (result.problems.length) {

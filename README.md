@@ -104,6 +104,11 @@ and CI runs `npm run living-spec:catalog:check`.
 
 It then lists the stories without a contract, and exits 1 if there was any problem.
 
+The linter checks steps against the committed catalog, not the step definitions, so a step that was just
+added to the code but not yet to the catalog shows up as unknown. Unknown- and ambiguous-step errors name the
+catalog file and the command that regenerates it (the catalog's `generatedBy`): if you just added or changed
+a step definition, run it.
+
 ```sh
 node packages/living-spec/bin/lint.ts --catalog <steps.json> [--root <dir>]
 ```

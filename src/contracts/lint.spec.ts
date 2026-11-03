@@ -20,6 +20,8 @@ const lint = (
   { file = featureFile, steps = librarySteps }: { file?: string; steps?: readonly { wording: string }[] } = {}
 ) => lintContracts({ features: [{ file, text }], storyFiles: [badge], steps })
 
+const HINT = ' If you just added or changed a step definition, run the catalog command.'
+
 const feature = (...lines: string[]) => ['Feature: Badge', '', ...lines, ''].join('\n')
 
 const VALID = feature(
@@ -59,7 +61,26 @@ describe('lintContracts', () => {
       )
     )
     expect(result.problems).toEqual([
-      { file: featureFile, line: 6, message: 'unknown step "And I should see the badge"' },
+      {
+        file: featureFile,
+        line: 6,
+        message: `unknown step "And I should see the badge": no step in the step catalog matches it.${HINT}`,
+      },
+    ])
+  })
+
+  test('names the catalog file and the command that regenerates it', () => {
+    const result = lintContracts({
+      features: [
+        { file: featureFile, text: feature('    @story:Default', '    Scenario: Waits', '        When I nap') },
+      ],
+      storyFiles: [badge],
+      steps: librarySteps,
+      catalog: { file: 'docs/living-spec/steps.json', command: 'npm run living-spec:catalog' },
+    })
+    expect(result.problems.map((p) => p.message)).toEqual([
+      'unknown step "When I nap": no step in docs/living-spec/steps.json matches it. ' +
+        'If you just added or changed a step definition, run `npm run living-spec:catalog`.',
     ])
   })
 
@@ -80,7 +101,7 @@ describe('lintContracts', () => {
       {
         file: featureFile,
         line: 4,
-        message: 'unknown step "Then I should assert that the element with id "badge" is shown as "3""',
+        message: `unknown step "Then I should assert that the element with id "badge" is shown as "3"": no step in the step catalog matches it.${HINT}`,
       },
     ])
   })
@@ -95,7 +116,8 @@ describe('lintContracts', () => {
         file: featureFile,
         line: 5,
         message:
-          'ambiguous step "When I wait for "2" seconds" matches 2 steps: "I wait for {string} seconds", "I wait for {string} {word}"',
+          'ambiguous step "When I wait for "2" seconds" matches 2 steps in the step catalog: ' +
+          `"I wait for {string} seconds", "I wait for {string} {word}".${HINT}`,
       },
     ])
   })

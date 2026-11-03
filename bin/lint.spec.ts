@@ -56,7 +56,9 @@ describe('the lint command', { timeout: 30000 }, () => {
     const result = lint()
     expect(result.code).toBe(1)
     expect(result.output).toContain(
-      `${path.join(root, 'src', 'Badge', 'Badge.feature')}:5: unknown step "When I wait a bit"`
+      `${path.join(root, 'src', 'Badge', 'Badge.feature')}:5: unknown step "When I wait a bit": ` +
+        `no step in ${path.join(root, 'steps.json')} matches it. ` +
+        'If you just added or changed a step definition, run `x`.'
     )
   })
 })
