@@ -1,4 +1,4 @@
-import type { StepDefinition } from '../../src/steps/types.ts'
+import type { StepDefinition } from '../../../../src/steps/types.ts'
 
 export const projectSteps: StepDefinition[] = [
   {

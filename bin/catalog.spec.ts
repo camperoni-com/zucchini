@@ -6,15 +6,18 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 const script = path.join(__dirname, 'catalog.ts')
-const fixtureSteps = path.join(__dirname, 'fixtures', 'projectSteps.ts')
+const fixtureSteps = path.join(__dirname, 'fixtures', 'project', 'steps', 'projectSteps.ts')
 
+// A project with no config, so the catalog goes to the default folder.
+let project: string
 let out: string
 
 const catalog = (...args: string[]) => {
   try {
     return {
       code: 0,
-      output: execFileSync('node', [script, '--out', out, '--command', 'npm run cat', ...args], {
+      output: execFileSync('node', [script, '--command', 'npm run cat', ...args], {
+        cwd: project,
         stdio: 'pipe',
       }).toString(),
     }
@@ -27,16 +30,17 @@ const catalog = (...args: string[]) => {
 const readJson = () => JSON.parse(fs.readFileSync(path.join(out, 'steps.json'), 'utf8'))
 
 beforeEach(() => {
-  out = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-'))
+  project = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-'))
+  out = path.join(project, 'docs', 'living-spec')
 })
 
 afterEach(() => {
-  fs.rmSync(out, { recursive: true, force: true })
+  fs.rmSync(project, { recursive: true, force: true })
 })
 
 // Each test starts Node, which is slow on a busy machine.
 describe('the catalog command', { timeout: 30000 }, () => {
-  test('writes the JSON and Markdown catalog of the library steps', () => {
+  test('writes the JSON and Markdown catalog of the library steps to the default folder', () => {
     expect(catalog()).toMatchObject({ code: 0 })
     const json = readJson()
     expect(json.generatedBy).toBe('npm run cat')
@@ -52,6 +56,12 @@ describe('the catalog command', { timeout: 30000 }, () => {
     expect(readJson().steps.at(-1)).toMatchObject({ wording: 'I am in the {string} metro', source: 'project' })
   })
 
+  test('--out names another folder', () => {
+    catalog('--out', 'elsewhere')
+    expect(fs.existsSync(path.join(project, 'elsewhere', 'steps.json'))).toBe(true)
+    expect(fs.existsSync(out)).toBe(false)
+  })
+
   test('--check passes on a fresh catalog', () => {
     catalog()
     expect(catalog('--check')).toMatchObject({ code: 0 })
@@ -63,7 +73,7 @@ describe('the catalog command', { timeout: 30000 }, () => {
     fs.writeFileSync(path.join(out, 'steps.md'), 'edited by hand\n')
     const result = catalog('--project-steps', fixtureSteps, '--check')
     expect(result.code).toBe(1)
-    expect(result.output).toContain(`The step catalog is out of date: ${path.join(out, 'steps.md')}.`)
+    expect(result.output).toContain(`The step catalog is out of date: ${path.join('docs', 'living-spec', 'steps.md')}.`)
     expect(result.output).toContain('Run `npm run cat` and commit the result.')
   })
 

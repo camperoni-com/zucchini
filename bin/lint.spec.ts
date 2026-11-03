@@ -16,7 +16,8 @@ let root: string
 const lint = () => {
   const args = [script, '--catalog', path.join(root, 'steps.json'), '--root', path.join(root, 'src')]
   try {
-    return { code: 0, output: execFileSync('node', args, { stdio: 'pipe' }).toString() }
+    // The flags name everything, and the temporary folder has no config.
+    return { code: 0, output: execFileSync('node', args, { cwd: root, stdio: 'pipe' }).toString() }
   } catch (error) {
     const failed = error as { status: number; stderr: Buffer }
     return { code: failed.status, output: failed.stderr.toString() }

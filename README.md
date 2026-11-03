@@ -12,6 +12,67 @@ then. Until that move:
 - its dependencies come from the root `package.json`, so CI needs no second install;
 - its unit specs run in the root Vitest suite, and the root type check and lint cover it.
 
+## Project config
+
+One file at the project root holds the project's settings: `living-spec.config.ts`, or
+`living-spec.config.mts` in a project whose `package.json` isn't `"type": "module"` (Node then loads it as
+an ES module without a warning). The catalog command, the contract linter and the Storybook plugin read it
+from the working directory; command-line flags and plugin options override it. Without a config file, the
+defaults apply. Paths are relative to the project root.
+
+```ts
+// living-spec.config.ts
+import { defineConfig } from 'living-spec'
+
+export default defineConfig({
+  contracts: 'src', // the folder holding the contracts and their stories
+  catalog: 'docs/living-spec', // where the catalog command writes steps.json and steps.md
+  projectSteps: 'test/projectSteps.ts', // optional: a module exporting `projectSteps`
+  results: 'test-results/living-spec.json', // the results file the runner writes and the spec view reads
+  testIdAttribute: 'data-testid', // the attribute the steps look elements up by
+})
+```
+
+| Setting           | Default                         | Read by                        | Overridden by                                        |
+| ----------------- | ------------------------------- | ------------------------------ | ---------------------------------------------------- |
+| `contracts`       | `src`                           | linter, Storybook plugin       | `lint.ts --root`, plugin option `dir`                |
+| `catalog`         | `docs/living-spec`              | catalog command, linter        | `catalog.ts --out`, `lint.ts --catalog <steps.json>` |
+| `projectSteps`    | none                            | catalog command                | `catalog.ts --project-steps`                         |
+| `results`         | `test-results/living-spec.json` | Storybook plugin (runner soon) | plugin option `results`                              |
+| `testIdAttribute` | `data-testid`                   | the runner (not yet built)     |                                                      |
+
+An unknown setting, or one that isn't a string, is an error.
+
+### Project steps
+
+A project's own steps are defined the same way as the library's (see [Steps](#steps)), in a module that
+exports them as `projectSteps`:
+
+```ts
+// test/projectSteps.ts
+import type { StepDefinition } from 'living-spec'
+
+export const projectSteps: StepDefinition[] = [
+  {
+    keyword: 'Given',
+    wording: 'I am in the {string} metro',
+    meaning: 'Picks a metro.',
+    example: 'I am in the "Bay Area" metro',
+    run: async (context, metro) => {
+      /* ... */
+    },
+  },
+]
+```
+
+Name that module in the config's `projectSteps` and regenerate the catalog: the steps appear in it marked as
+project steps, and the linter, which checks contracts against the catalog, accepts them. The runner registers
+them next to the library's (see [Registering the steps](#registering-the-steps)).
+`bin/fixtures/project/` is a small project set up this way.
+
+Camperoni's config is `living-spec.config.mts` at the repo root. It has no project steps yet, so it leaves
+`projectSteps` out, with a comment saying how to add them.
+
 ## Contracts
 
 A component's contract is a Gherkin feature file beside its stories:
@@ -77,23 +138,24 @@ for the runner in use. The test-id attribute defaults to `data-testid`.
 ## Step catalog
 
 `bin/catalog.ts` writes every available step (keyword, wording, parameter types, meaning, example, and
-whether it comes from the library or the project) as `steps.json` and a readable `steps.md`. It runs on
-Node's built-in TypeScript support, without a browser:
+whether it comes from the library or the project) as `steps.json` and a readable `steps.md` in the config's
+`catalog` folder. It runs on Node's built-in TypeScript support, without a browser:
 
 ```sh
-node packages/living-spec/bin/catalog.ts --out <dir> [--project-steps <module>] [--command <text>] [--check]
+node packages/living-spec/bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
 ```
 
-A `--project-steps` module exports `projectSteps`, an array of step definitions. `--check` writes nothing
-and exits 1 when the files in `<dir>` differ from what the definitions produce; `--command` is the command
-the files and the error message tell people to run.
+`--out` and `--project-steps` override the config's `catalog` and `projectSteps`. `--check` writes nothing
+and exits 1 when the committed files differ from what the definitions produce; `--command` is the command
+the files, the error message and the linter tell people to run (stored as the catalog's `generatedBy`).
 
 In Camperoni the catalog is committed in `docs/living-spec/`; `npm run living-spec:catalog` regenerates it,
 and CI runs `npm run living-spec:catalog:check`.
 
 ## Contract linter
 
-`bin/lint.ts` parses every `*.feature` under `--root` with the official Gherkin parser and reports, as
+`bin/lint.ts` parses every `*.feature` in the config's `contracts` folder with the official Gherkin parser,
+checks it against the catalog in the config's `catalog` folder, and reports, as
 `file:line: message`:
 
 - a step that matches no step in the catalog, or more than one (outline steps are checked with their
@@ -110,8 +172,11 @@ catalog file and the command that regenerates it (the catalog's `generatedBy`): 
 a step definition, run it.
 
 ```sh
-node packages/living-spec/bin/lint.ts --catalog <steps.json> [--root <dir>]
+node packages/living-spec/bin/lint.ts [--catalog <steps.json>] [--root <dir>]
 ```
+
+`--catalog` names the catalog file to check against and `--root` the folder of contracts, overriding the
+config.
 
 Story names come from Storybook's CSF reader, an internal Storybook API; `src/contracts/stories.ts` is the
 only module that uses it. In Camperoni, `npm run living-spec:lint` lints `src/` and runs in CI.
@@ -127,7 +192,8 @@ without one.
 
 - `src/view/viewModel.ts` turns a parsed feature, its bindings and optional results into the view model.
 - `src/storybook/vitePlugin.ts` builds the view models in Node and serves them as the virtual module
-  `virtual:living-spec/contracts`, in dev and in the build. It uses only `resolveId`, `load` and
+  `virtual:living-spec/contracts`, in dev and in the build. It reads `contracts` and `results` from the
+  config at its `root` (the working directory by default); its `dir` and `results` options override them. It uses only `resolveId`, `load` and
   `addWatchFile`, which are stable across Vite 5 to 8.
 - `src/storybook/ContractsDocsPage.tsx` is the docs page: Storybook's `DocsPage` followed by the contracts.
 
@@ -138,7 +204,7 @@ Wiring, as in Camperoni's `.storybook/`:
 stories: [..., '../packages/living-spec/src/storybook/*.mdx'],
 viteFinal: (config) => ({
   ...config,
-  plugins: [...(config.plugins ?? []), livingSpecPlugin({ dir: 'src', results: 'test-results/living-spec.json' })],
+  plugins: [...(config.plugins ?? []), livingSpecPlugin()],
 }),
 
 // preview.ts

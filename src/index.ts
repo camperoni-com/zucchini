@@ -1,5 +1,7 @@
 export type { Catalog, CatalogEntry, StepSource } from './catalog/catalog.ts'
 export { buildCatalog, catalogToJson, catalogToMarkdown } from './catalog/catalog.ts'
+export type { LivingSpecConfig, ResolvedConfig } from './config/config.ts'
+export { DEFAULT_CONFIG, defineConfig } from './config/config.ts'
 export { createStepContext, DEFAULT_BUDGETS, DEFAULT_TEST_ID_ATTRIBUTE } from './steps/dom.ts'
 export { librarySteps } from './steps/library.ts'
 export type { CucumberDefiners, DefineStep } from './steps/register.ts'

@@ -33,8 +33,8 @@ afterEach(() => {
 })
 
 // Calls the plugin's hooks the way Vite does, with a stand-in plugin context.
-const loadSpec = async (options: { results?: string }) => {
-  const plugin = livingSpecPlugin({ root, dir: 'src', ...options })
+const loadSpec = async (options: { dir?: string; results?: string }) => {
+  const plugin = livingSpecPlugin({ root, ...options })
   const resolveId = plugin.resolveId as (id: string) => string | undefined
   const load = plugin.load as (this: { addWatchFile: (file: string) => void }, id: string) => Promise<string>
   const resolved = resolveId(SPEC_MODULE_ID)
@@ -91,5 +91,29 @@ describe('livingSpecPlugin', () => {
     const { spec } = await loadSpec({ results: 'missing.json' })
     expect(spec.ranAt).toBeNull()
     expect(spec.contracts[0].scenarios[0].status).toBe('not-run')
+  })
+
+  test("reads the folders from the project's config, and its options override them", async () => {
+    fs.renameSync(path.join(root, 'src'), path.join(root, 'contracts'))
+    fs.mkdirSync(path.join(root, 'out'))
+    fs.writeFileSync(
+      path.join(root, 'out', 'results.json'),
+      JSON.stringify({
+        ranAt: '2026-11-02T10:00:00Z',
+        scenarios: [{ file: path.join('contracts', 'Badge', 'Badge.feature'), line: 4, status: 'failed' }],
+      })
+    )
+    fs.writeFileSync(
+      path.join(root, 'living-spec.config.mts'),
+      "export default { contracts: 'contracts', results: 'out/results.json' }\n"
+    )
+    const { spec } = await loadSpec({})
+    expect(spec.contracts[0]).toMatchObject({
+      file: path.join('contracts', 'Badge', 'Badge.feature'),
+      status: 'failed',
+    })
+
+    expect((await loadSpec({ results: 'missing.json' })).spec.contracts[0].status).toBe('not-run')
+    expect((await loadSpec({ dir: 'nowhere' })).spec.contracts).toEqual([])
   })
 })

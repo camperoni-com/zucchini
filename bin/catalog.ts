@@ -1,15 +1,18 @@
-// Writes the step catalog (steps.json and steps.md) into --out, or with --check fails when the committed
-// files differ from what the step definitions produce. Runs on Node's built-in TypeScript support.
+// Writes the step catalog (steps.json and steps.md) into the config's catalog folder, or with --check fails
+// when the committed files differ from what the step definitions produce. Runs on Node's built-in TypeScript
+// support. Settings come from the project config (living-spec.config.ts or .mts in the working directory);
+// flags override them.
 //
-//   node packages/living-spec/bin/catalog.ts --out <dir> [--project-steps <module>] [--command <text>] [--check]
+//   node packages/living-spec/bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
 //
-// A --project-steps module exports `projectSteps`, an array of step definitions.
+// A project-steps module exports `projectSteps`, an array of step definitions.
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 
 import { buildCatalog, catalogToJson, catalogToMarkdown } from '../src/catalog/catalog.ts'
+import { loadConfig } from '../src/config/load.ts'
 import { librarySteps } from '../src/steps/library.ts'
 import type { StepDefinition } from '../src/steps/types.ts'
 
@@ -22,10 +25,8 @@ const { values } = parseArgs({
   },
 })
 
-if (!values.out) {
-  process.stderr.write('Usage: catalog.ts --out <dir> [--project-steps <module>] [--command <text>] [--check]\n')
-  process.exit(2)
-}
+const { config } = await loadConfig()
+const out = values.out ?? config.catalog
 
 const loadProjectSteps = async (modulePath: string | undefined): Promise<StepDefinition[]> => {
   if (!modulePath) {
@@ -40,13 +41,13 @@ const loadProjectSteps = async (modulePath: string | undefined): Promise<StepDef
 
 const catalog = buildCatalog({
   library: librarySteps,
-  project: await loadProjectSteps(values['project-steps']),
+  project: await loadProjectSteps(values['project-steps'] ?? config.projectSteps),
   generatedBy: values.command,
 })
 
 const files = {
-  [path.join(values.out, 'steps.json')]: catalogToJson(catalog),
-  [path.join(values.out, 'steps.md')]: catalogToMarkdown(catalog),
+  [path.join(out, 'steps.json')]: catalogToJson(catalog),
+  [path.join(out, 'steps.md')]: catalogToMarkdown(catalog),
 }
 
 if (values.check) {
@@ -61,7 +62,7 @@ if (values.check) {
   }
   process.stdout.write(`The step catalog is up to date (${catalog.steps.length} steps).\n`)
 } else {
-  fs.mkdirSync(values.out, { recursive: true })
+  fs.mkdirSync(out, { recursive: true })
   for (const [file, content] of Object.entries(files)) {
     fs.writeFileSync(file, content)
   }
