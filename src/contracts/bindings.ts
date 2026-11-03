@@ -5,9 +5,10 @@
 // - a `story` column in an outline's Examples binds each row to the story it names;
 // - scenario titles are free text.
 import { AstBuilder, compile, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin'
-import type { GherkinDocument, Pickle, Scenario, TableRow } from '@cucumber/messages'
+import type { GherkinDocument, Pickle, Scenario, Step, TableRow } from '@cucumber/messages'
 import { IdGenerator } from '@cucumber/messages'
 
+import type { PickleContent } from '../view/pickleHash.ts'
 import type { StoryFile } from './stories.ts'
 
 export const STORY_TAG = '@story:'
@@ -51,6 +52,21 @@ export const scenariosOf = (doc: GherkinDocument): Scenario[] =>
     ...(child.rule?.children ?? []).flatMap((ruleChild) => (ruleChild.scenario ? [ruleChild.scenario] : [])),
   ])
 
+/** Every step of a parsed feature (Background steps included), by id. */
+export const stepsById = (doc: GherkinDocument) => {
+  const steps = new Map<string, Step>()
+  const add = (list: readonly Step[] | undefined) => list?.forEach((step) => steps.set(step.id, step))
+  for (const child of doc.feature?.children ?? []) {
+    add(child.background?.steps)
+    add(child.scenario?.steps)
+    for (const ruleChild of child.rule?.children ?? []) {
+      add(ruleChild.background?.steps)
+      add(ruleChild.scenario?.steps)
+    }
+  }
+  return steps
+}
+
 export interface BoundPickle {
   pickle: Pickle
   scenario: Scenario
@@ -60,6 +76,8 @@ export interface BoundPickle {
   line: number
   /** The story it runs on, when the binding is valid. */
   story?: string
+  /** What its content hash covers: its name, its steps as they run and its Examples values. */
+  content: PickleContent
 }
 
 export interface FeatureBinding {
@@ -85,6 +103,7 @@ export const bindFeature = (doc: GherkinDocument, storyFile: StoryFile | undefin
   const scenarios = new Map(scenariosOf(doc).map((scenario) => [scenario.id, scenario]))
   const known = new Set(storyFile?.stories.map((story) => story.name))
   const pickles: BoundPickle[] = []
+  const astSteps = stepsById(doc)
 
   for (const pickle of compile(doc, file, IdGenerator.incrementing())) {
     const scenario = scenarios.get(pickle.astNodeIds[0])
@@ -97,6 +116,14 @@ export const bindFeature = (doc: GherkinDocument, storyFile: StoryFile | undefin
       scenario,
       row: fromRow?.row,
       line: fromRow?.row.location.line ?? scenario.location.line,
+      content: {
+        name: pickle.name,
+        steps: pickle.steps.map((step) => ({
+          keyword: astSteps.get(step.astNodeIds[0])?.keyword.trim() ?? '',
+          text: step.text,
+        })),
+        values: fromRow?.row.cells.map((cell) => cell.value) ?? [],
+      },
     }
     pickles.push(bound)
 

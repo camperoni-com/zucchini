@@ -44,7 +44,7 @@ export const buildSpecData = async ({
     if (doc) {
       const storyFile = storyFileFor(file, storyFiles)
       const binding = bindFeature(doc, storyFile)
-      contracts.push(buildContractView({ file, doc, text, binding, storyFile, results: recorded }))
+      contracts.push(await buildContractView({ file, doc, text, binding, storyFile, results: recorded }))
     }
   }
 

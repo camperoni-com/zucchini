@@ -184,7 +184,7 @@ only module that uses it. In Camperoni, `npm run living-spec:lint` lints `src/` 
 ## Spec view in Storybook
 
 Each component's docs page shows its contracts after the default autodocs blocks: every scenario with the
-stories it runs on (linked), its steps, its Examples, and its last result (passed, failed, or not run yet).
+stories it runs on (linked), its steps, its Examples, and its last result (passed, failed, changed since its last run, or not run yet).
 A `#` comment line among a scenario's steps starts a named, collapsible group of the steps after it, up to
 the next comment or blank line. A component without a contract shows a short "no contract" note. The
 overview page (`src/storybook/Overview.mdx`, "Living Spec/Contracts") lists every contract and the stories
@@ -225,6 +225,7 @@ contract runner will write it as:
       "line": 12,
       "name": "Shows 3 on Default",
       "browser": "webkit-mobile",
+      "hash": "8dbcc9a65455",
       "status": "failed",
       "durationMs": 840,
       "error": "Expected \"3\" to equal \"4\"",
@@ -247,8 +248,36 @@ Each entry is one run of one pickle (a scenario, or one Examples row of an outli
   and `line` alone.
 - `browser` (optional): a free label for the browser and device, such as `webkit-mobile`. A failed scenario
   or row shows the distinct labels it failed on, e.g. "Failed on webkit-mobile, firefox-desktop".
+- `hash` (optional): the pickle's content hash when it ran (see below). When it is no longer the hash of the
+  pickle at `file` and `line`, the scenario was edited since without changing its name: the entry is stale,
+  and the scenario or row shows "changed since last run", which looks different from both "not run yet" and
+  failed. A stale entry's failure and browsers aren't shown. An entry without `hash` is taken as current.
 - `durationMs`, `error` and `ranAt` (all optional): how long it took, the failure's message, and when it ran
   (defaulting to the file's `ranAt`).
 
 A pickle with several entries (one per browser) has passed once all of them passed, and failed when any
-failed.
+failed. Current entries outweigh stale ones; a pickle with only stale entries is "changed since last run".
+
+#### The content hash
+
+`pickleHash(content)`, exported from the package, computes it with Web Crypto, so the view (in Node) and the
+runner (in the browser) get the same value. It covers:
+
+1. `name`: the pickle's name, as above;
+2. `steps`: every step the pickle runs, in order, Background steps first, each as its keyword as written
+   (`Given`, `When`, `Then`, `And`, `But` or `*`, without surrounding spaces) and its text with the Examples
+   row's values filled in;
+3. `values`: the Examples row's cells in column order, or none for a plain scenario.
+
+Doc strings and data tables are not covered. The hash is the first 12 hex digits of the SHA-256 of the UTF-8
+JSON array `[name, [[keyword, text], ...], [value, ...]]`, for example:
+
+```json
+[
+  "Shows 3 on Default",
+  [["Then", "I should assert that the element with id \"badge\" has an exact value of \"3\""]],
+  ["Default", "3"]
+]
+```
+
+hashes to `8dbcc9a65455` (`JSON.stringify` without spaces is what's hashed; the spaces here are for reading).

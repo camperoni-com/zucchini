@@ -2,6 +2,7 @@
 export const SPEC_CSS = `
 .ls { --ls-ink: #1b2422; --ls-muted: #5b6864; --ls-line: #d9dfda; --ls-sunk: #f4f6f3; --ls-accent: #2b48b0;
   --ls-pass: #1e7a4c; --ls-pass-soft: #e3f2ea; --ls-fail: #b23a2e; --ls-fail-soft: #f8e6e3; --ls-nr: #5b6864;
+  --ls-changed: #8a5300; --ls-changed-soft: #fdf0d5;
   --ls-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color: var(--ls-ink); font-size: 14px; line-height: 1.5; margin: 48px 0 24px; }
 .ls h2 { font-size: 22px; font-weight: 700; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--ls-line); }
@@ -16,6 +17,7 @@ export const SPEC_CSS = `
 .ls-pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
 .ls-passed { color: var(--ls-pass); background: var(--ls-pass-soft); }
 .ls-failed { color: var(--ls-fail); background: var(--ls-fail-soft); }
+.ls-changed { color: var(--ls-changed); background: var(--ls-changed-soft); }
 .ls-not-run { color: var(--ls-nr); border: 1px dashed var(--ls-line); background: var(--ls-sunk); font-weight: 500; }
 .ls-runs-on { margin: 6px 0 10px; color: var(--ls-muted); }
 .ls-ran { color: var(--ls-muted); font-size: 12px; }
@@ -43,6 +45,8 @@ export const SPEC_CSS = `
 .ls-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
 .ls-dot.ls-passed { background: var(--ls-pass); }
 .ls-dot.ls-failed { background: var(--ls-fail); }
+.ls-dot.ls-changed { box-sizing: border-box; background: var(--ls-changed-soft); border: 2px solid var(--ls-changed); }
+.ls-row-changed { margin-left: 6px; color: var(--ls-changed); font-size: 11.5px; white-space: nowrap; }
 .ls-dot.ls-not-run { background: transparent; border: 1px solid var(--ls-muted); }
 .ls-overview { margin-top: 0; }
 .ls-overview h2 { margin-top: 32px; }

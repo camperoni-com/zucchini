@@ -2,10 +2,8 @@
 // run on a story that exists. Also lists the stories no contract covers.
 import path from 'node:path'
 
-import type { GherkinDocument, Step } from '@cucumber/messages'
-
 import { compileSteps } from '../steps/expressions.ts'
-import { bindFeature, componentOf, dedupe, parseFeature, type Problem } from './bindings.ts'
+import { bindFeature, componentOf, dedupe, parseFeature, type Problem, stepsById } from './bindings.ts'
 import type { StoryFile } from './stories.ts'
 
 export interface ContractFile {
@@ -39,20 +37,6 @@ export const storyFileFor = (featureFile: string, storyFiles: readonly StoryFile
   const component = path.basename(featureFile, '.feature')
   const dir = path.dirname(featureFile)
   return storyFiles.find((s) => path.dirname(s.file) === dir && componentOf(s.title) === component)
-}
-
-const stepsById = (doc: GherkinDocument) => {
-  const steps = new Map<string, Step>()
-  const add = (list: readonly Step[] | undefined) => list?.forEach((step) => steps.set(step.id, step))
-  for (const child of doc.feature?.children ?? []) {
-    add(child.background?.steps)
-    add(child.scenario?.steps)
-    for (const ruleChild of child.rule?.children ?? []) {
-      add(ruleChild.background?.steps)
-      add(ruleChild.scenario?.steps)
-    }
-  }
-  return steps
 }
 
 export const lintContracts = ({

@@ -62,6 +62,7 @@ const Examples = ({ examples }: { examples: ExamplesView }) => (
             <td title={row.failedOn.length ? failedOn(row.failedOn) : STATUS_LABEL[row.status]}>
               <span className={`ls-dot ls-${row.status}`} />
               {row.failedOn.length ? <span className="ls-browsers">{row.failedOn.join(', ')}</span> : null}
+              {row.status === 'changed' ? <span className="ls-row-changed">changed since last run</span> : null}
             </td>
             {row.cells.map((cell, c) => (
               <td key={c} className="ls-cell">
