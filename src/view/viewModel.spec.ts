@@ -200,3 +200,78 @@ describe('statuses', () => {
     expect(contract.scenarios[1].examples[0].rows.map((r) => r.status)).toEqual(['passed', 'not-run', 'not-run'])
   })
 })
+
+describe('matching results by name', () => {
+  // Rows on lines 8 and 9; Cucumber names their pickles "Shows 3 on Default" and "Shows 4 on With Label".
+  const NAMED = [
+    '    Scenario Outline: Shows <count> on <story>',
+    '        Then I should assert that the element with id "badge" has an exact value of "<count>"',
+    '',
+    '        Examples:',
+    '            | story      | count |',
+    '            | Default    | 3     |',
+    '            | With Label | 4     |',
+  ]
+  const rowStatuses = (scenarios: Results['scenarios']) =>
+    view(NAMED, { ranAt: '2026-11-02T10:00:00Z', scenarios }).scenarios[0].examples[0].rows.map((r) => r.status)
+
+  test("a result named as the row's pickle, with its values filled in, counts", () => {
+    expect(
+      rowStatuses([
+        { file: FILE, line: 8, name: 'Shows 3 on Default', status: 'passed' },
+        { file: FILE, line: 9, name: 'Shows 4 on With Label', status: 'failed' },
+      ])
+    ).toEqual(['passed', 'failed'])
+  })
+
+  test('a result whose name is not the pickle at its line is ignored, so the row has not run', () => {
+    // The rows were swapped since the run: line 8 is now "Shows 3 on Default".
+    expect(
+      rowStatuses([
+        { file: FILE, line: 8, name: 'Shows 4 on With Label', status: 'failed' },
+        { file: FILE, line: 9, name: 'Shows 3 on Default', status: 'passed' },
+      ])
+    ).toEqual(['not-run', 'not-run'])
+  })
+
+  test('a result without a name is matched by its line', () => {
+    expect(rowStatuses([{ file: FILE, line: 8, status: 'passed' }])).toEqual(['passed', 'not-run'])
+  })
+})
+
+describe('failing browsers', () => {
+  // The outline's rows are on lines 8, 9 and 10.
+  test('a failed scenario and each failed row list the browsers they failed on, once each', () => {
+    const scenario = view(OUTLINE, {
+      ranAt: '2026-11-02T10:00:00Z',
+      scenarios: [
+        { file: FILE, line: 8, status: 'passed', browser: 'chromium-desktop' },
+        { file: FILE, line: 8, status: 'failed', browser: 'webkit-mobile' },
+        { file: FILE, line: 9, status: 'failed', browser: 'firefox-desktop' },
+        { file: FILE, line: 9, status: 'failed', browser: 'webkit-mobile' },
+        { file: FILE, line: 10, status: 'passed', browser: 'webkit-mobile' },
+        { file: FILE, line: 10, status: 'passed', browser: 'firefox-desktop' },
+      ],
+    }).scenarios[0]
+    expect(scenario.status).toBe('failed')
+    expect(scenario.failedOn).toEqual(['webkit-mobile', 'firefox-desktop'])
+    expect(scenario.examples[0].rows.map((r) => [r.status, r.failedOn])).toEqual([
+      ['failed', ['webkit-mobile']],
+      ['failed', ['firefox-desktop', 'webkit-mobile']],
+      ['passed', []],
+    ])
+  })
+
+  test('none without browser labels, or when nothing failed', () => {
+    const failed = view(OUTLINE, {
+      ranAt: '2026-11-02T10:00:00Z',
+      scenarios: [{ file: FILE, line: 8, status: 'failed' }],
+    })
+    expect(failed.scenarios[0].failedOn).toEqual([])
+    const passed = view(OUTLINE, {
+      ranAt: '2026-11-02T10:00:00Z',
+      scenarios: [{ file: FILE, line: 8, status: 'passed', browser: 'webkit-mobile' }],
+    })
+    expect(passed.scenarios[0].failedOn).toEqual([])
+  })
+})

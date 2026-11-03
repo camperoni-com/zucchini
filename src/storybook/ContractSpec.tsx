@@ -31,6 +31,8 @@ const StepText = ({ text }: { text: string }) => (
   </>
 )
 
+const failedOn = (browsers: readonly string[]) => `Failed on ${browsers.join(', ')}`
+
 const Steps = ({ steps }: { steps: StepView[] }) => (
   <ol className="ls-steps">
     {steps.map((step) => (
@@ -57,8 +59,9 @@ const Examples = ({ examples }: { examples: ExamplesView }) => (
       <tbody>
         {examples.rows.map((row) => (
           <tr key={row.line}>
-            <td title={STATUS_LABEL[row.status]}>
+            <td title={row.failedOn.length ? failedOn(row.failedOn) : STATUS_LABEL[row.status]}>
               <span className={`ls-dot ls-${row.status}`} />
+              {row.failedOn.length ? <span className="ls-browsers">{row.failedOn.join(', ')}</span> : null}
             </td>
             {row.cells.map((cell, c) => (
               <td key={c} className="ls-cell">
@@ -99,6 +102,7 @@ const Scenario = ({ scenario }: { scenario: ScenarioView }) => (
           ))
         : 'no story'}
     </p>
+    {scenario.failedOn.length ? <p className="ls-failed-on">{failedOn(scenario.failedOn)}</p> : null}
     {scenario.error ? <pre className="ls-error">{scenario.error}</pre> : null}
     {scenario.groups.map((group, i) =>
       group.title ? (

@@ -15,6 +15,14 @@ export interface ScenarioResult {
   file: string
   /** The line that selects the pickle: its Examples row, or the scenario. */
   line: number
+  /**
+   * Cucumber's pickle name: the scenario's name, with an outline row's values in its `<placeholders>`. When
+   * present, it must still be the name of the pickle at `line`, or the result is ignored: the scenario was
+   * moved or renamed since it ran. A result without a name is matched by `file` and `line` alone.
+   */
+  name?: string
+  /** The browser and device it ran on: a free label such as `webkit-mobile`. */
+  browser?: string
   /** Cucumber's result status, lower-case: passed, failed, skipped, pending, undefined, ambiguous... */
   status: string
   durationMs?: number
@@ -51,6 +59,8 @@ export interface ExampleRowView {
   cells: string[]
   story?: StoryLink
   status: Status
+  /** The browsers it failed on, from the results' `browser` labels. */
+  failedOn: string[]
 }
 
 export interface ExamplesView {
@@ -68,6 +78,8 @@ export interface ScenarioView {
   /** The stories it runs on, in order of first appearance. */
   stories: StoryLink[]
   status: Status
+  /** The browsers any of its pickles failed on, from the results' `browser` labels. */
+  failedOn: string[]
   /** When its latest result was recorded. */
   ranAt?: string
   /** The first failure's message. */
@@ -139,8 +151,10 @@ export const groupSteps = ({
   return groups
 }
 
+const isFailure = (result: ScenarioResult) => !['passed', 'skipped', 'pending'].includes(result.status)
+
 const statusOf = (results: readonly ScenarioResult[]): Status => {
-  if (results.some((r) => !['passed', 'skipped', 'pending'].includes(r.status))) {
+  if (results.some(isFailure)) {
     return 'failed'
   }
   return results.length && results.every((r) => r.status === 'passed') ? 'passed' : 'not-run'
@@ -152,6 +166,10 @@ const overall = (statuses: readonly Status[]): Status => {
   }
   return statuses.length && statuses.every((s) => s === 'passed') ? 'passed' : 'not-run'
 }
+
+const failedBrowsers = (results: readonly ScenarioResult[]) => [
+  ...new Set(results.filter(isFailure).flatMap((r) => (r.browser ? [r.browser] : []))),
+]
 
 const uniqueStories = (stories: readonly (StoryLink | undefined)[]) => {
   const byId = new Map<string, StoryLink>()
@@ -186,17 +204,25 @@ export const buildContractView = ({
     const id = name === undefined ? undefined : storyIds.get(name)
     return name !== undefined && id !== undefined ? { name, id } : undefined
   }
-  const resultsAt = (line: number) =>
-    (results?.scenarios ?? [])
-      .filter((r) => r.file === file && r.line === line)
-      .map((r) => ({ ...r, ranAt: r.ranAt ?? results?.ranAt }))
+  // A result belongs to a pickle when it names the pickle's file and line and, if it records a name, the
+  // pickle's name. Each further check on what ran (such as a content hash) goes here.
+  const isResultOf = (result: ScenarioResult, bound: BoundPickle) =>
+    result.file === file &&
+    result.line === bound.line &&
+    (result.name === undefined || result.name === bound.pickle.name)
+  const resultsOf = (bound: BoundPickle | undefined) =>
+    bound
+      ? (results?.scenarios ?? [])
+          .filter((r) => isResultOf(r, bound))
+          .map((r) => ({ ...r, ranAt: r.ranAt ?? results?.ranAt }))
+      : []
 
   const scenarios = scenariosOf(doc).map((scenario): ScenarioView => {
     const pickles: BoundPickle[] = binding.pickles.filter((b) => b.scenario.id === scenario.id)
-    const storyOfRow = new Map(pickles.flatMap((b) => (b.row ? [[b.row.id, linkTo(b.story)] as const] : [])))
-    const scenarioResults = pickles.flatMap((b) => resultsAt(b.line))
+    const pickleOfRow = new Map(pickles.flatMap((b) => (b.row ? [[b.row.id, b] as const] : [])))
+    const scenarioResults = pickles.flatMap(resultsOf)
     // Passed only once every pickle (each Examples row) has passed.
-    const status = overall(pickles.map((b) => statusOf(resultsAt(b.line))))
+    const status = overall(pickles.map((b) => statusOf(resultsOf(b))))
     return {
       name: scenario.name,
       line: scenario.location.line,
@@ -205,20 +231,26 @@ export const buildContractView = ({
       examples: scenario.examples.map((examples) => ({
         name: examples.name,
         header: (examples.tableHeader?.cells ?? []).map((cell) => cell.value),
-        rows: examples.tableBody.map((row) => ({
-          line: row.location.line,
-          cells: row.cells.map((cell) => cell.value),
-          story: storyOfRow.get(row.id),
-          status: statusOf(resultsAt(row.location.line)),
-        })),
+        rows: examples.tableBody.map((row) => {
+          const bound = pickleOfRow.get(row.id)
+          const rowResults = resultsOf(bound)
+          return {
+            line: row.location.line,
+            cells: row.cells.map((cell) => cell.value),
+            story: linkTo(bound?.story),
+            status: statusOf(rowResults),
+            failedOn: failedBrowsers(rowResults),
+          }
+        }),
       })),
       stories: uniqueStories(pickles.map((b) => linkTo(b.story))),
       status,
+      failedOn: failedBrowsers(scenarioResults),
       ranAt: scenarioResults
         .flatMap((r) => (r.ranAt ? [r.ranAt] : []))
         .sort()
         .pop(),
-      error: scenarioResults.find((r) => statusOf([r]) === 'failed')?.error,
+      error: scenarioResults.find(isFailure)?.error,
     }
   })
 

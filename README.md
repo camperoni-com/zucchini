@@ -211,7 +211,44 @@ viteFinal: (config) => ({
 parameters: { docs: { page: ContractsDocsPage } }
 ```
 
-The results file is optional; without it every scenario shows "not run yet". The contract runner will write
-it as `{ "ranAt": "<ISO time>", "scenarios": [{ "file", "line", "status", "durationMs", "error" }] }`, where
-`file` is the feature path relative to the project root and `line` is the line of the scenario, or of the
-Examples row for an outline.
+### The results file
+
+The results file (the config's `results`) is optional; without it every scenario shows "not run yet". The
+contract runner will write it as:
+
+```json
+{
+  "ranAt": "2026-11-02T10:00:00Z",
+  "scenarios": [
+    {
+      "file": "src/components/Badge/Badge.feature",
+      "line": 12,
+      "name": "Shows 3 on Default",
+      "browser": "webkit-mobile",
+      "status": "failed",
+      "durationMs": 840,
+      "error": "Expected \"3\" to equal \"4\"",
+      "ranAt": "2026-11-02T10:05:00Z"
+    }
+  ]
+}
+```
+
+Each entry is one run of one pickle (a scenario, or one Examples row of an outline) on one browser:
+
+- `file`: the feature file, relative to the project root.
+- `line`: the line of the scenario, or of the Examples row for an outline.
+- `status`: Cucumber's status, lower-case (`passed`, `failed`, `skipped`, `pending`, `undefined`,
+  `ambiguous`...). Anything but passed, skipped or pending counts as a failure.
+- `name` (optional): Cucumber's pickle name, that is the scenario's name with an outline row's values in its
+  `<placeholders>`, as `@cucumber/gherkin`'s `compile()` names it. When it isn't the name of the pickle now at
+  `file` and `line` (the scenario moved, or was renamed), the view ignores the entry, so the scenario shows
+  "not run yet" instead of borrowing another scenario's result. An entry without `name` is matched by `file`
+  and `line` alone.
+- `browser` (optional): a free label for the browser and device, such as `webkit-mobile`. A failed scenario
+  or row shows the distinct labels it failed on, e.g. "Failed on webkit-mobile, firefox-desktop".
+- `durationMs`, `error` and `ranAt` (all optional): how long it took, the failure's message, and when it ran
+  (defaulting to the file's `ranAt`).
+
+A pickle with several entries (one per browser) has passed once all of them passed, and failed when any
+failed.

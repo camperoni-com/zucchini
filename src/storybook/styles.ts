@@ -19,6 +19,8 @@ export const SPEC_CSS = `
 .ls-not-run { color: var(--ls-nr); border: 1px dashed var(--ls-line); background: var(--ls-sunk); font-weight: 500; }
 .ls-runs-on { margin: 6px 0 10px; color: var(--ls-muted); }
 .ls-ran { color: var(--ls-muted); font-size: 12px; }
+.ls-failed-on { margin: 6px 0; color: var(--ls-fail); font-weight: 600; }
+.ls-browsers { margin-left: 6px; color: var(--ls-fail); font-size: 11.5px; white-space: nowrap; }
 .ls-error { font-family: var(--ls-mono); font-size: 12px; color: var(--ls-fail); background: var(--ls-fail-soft); padding: 6px 8px; border-radius: 6px; margin: 6px 0; white-space: pre-wrap; }
 .ls-description { margin: 4px 0 8px; white-space: pre-line; }
 .ls-steps { list-style: none; margin: 0; padding: 0; }
