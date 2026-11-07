@@ -1,5 +1,6 @@
 // The deliberate-break check, run by hand: applies each break (see src/mutation/mutation.ts) on its own, runs
-// the contracts of that story file, and checks the broken scenario or row failed. Every break is reverted after
+// the contracts it concerns, and checks they caught it: a contract break's scenario or row failed, or a code
+// break's contracts failed somewhere. Every break is reverted after
 // its run, even when the run fails or is interrupted (Ctrl-C), and the results file is put back as it was.
 // Exits 1, naming them, when a break stayed green, didn't run, couldn't be applied, or a run failed elsewhere.
 // Runs on Node's built-in TypeScript support.
@@ -17,7 +18,7 @@ import { parseArgs } from 'node:util'
 import { loadConfig } from '../src/config/load.ts'
 import { storyFileFor } from '../src/contracts/lint.ts'
 import { findContracts } from '../src/contracts/load.ts'
-import { applyBreak, type Break, isFailure, judge, type Verdict } from '../src/mutation/mutation.ts'
+import { applyBreak, type Break, contractsOf, isFailure, judge, type Verdict } from '../src/mutation/mutation.ts'
 import { readResults } from '../src/runner/results.ts'
 
 const { values } = parseArgs({
@@ -81,7 +82,8 @@ try {
       outcomes.push({ brk, error: (error as Error).message })
       continue
     }
-    const storyFile = storyFileFor(brk.file, storyFiles)?.file ?? brk.file
+    // The story files of the contracts the break must fail: its own contract, or a code break's contracts.
+    const toRun = contractsOf(broken.target).map((contract) => storyFileFor(contract, storyFiles)?.file ?? contract)
     process.stdout.write(`\n=== ${brk.name}: ${brk.file}:${broken.target.line} (${brk.checks})\n`)
     fs.rmSync(resultsFile, { force: true })
     try {
@@ -93,7 +95,7 @@ try {
         values.browser,
         '--device',
         onDevices.join(','),
-        storyFile,
+        ...toRun,
       ])
     } finally {
       fs.writeFileSync(brk.file, original)
@@ -134,7 +136,7 @@ for (const { brk, verdict, skipped, error } of outcomes) {
     problems += 1
     out(
       verdict.kind === 'missed'
-        ? `  MISSED   ${label}: the broken pickles still passed`
+        ? `  MISSED   ${label}: ${brk.contracts?.length ? `${brk.contracts.join(', ')} still passed` : 'the broken pickles still passed'}`
         : `  NOT RUN  ${label}: none of the broken pickles ran`
     )
   }
