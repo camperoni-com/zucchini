@@ -49,6 +49,17 @@ describe('registerSteps', () => {
     expect(projectStep.run).toHaveBeenCalledWith(context, 'sf')
   })
 
+  test('gives each step function one argument per parameter, as Cucumber requires', () => {
+    const cucumber = fakeCucumber()
+    registerSteps(cucumber, { context, projectSteps: [projectStep] })
+    const arity = (wording: string) =>
+      [...cucumber.Given.mock.calls, ...cucumber.When.mock.calls, ...cucumber.Then.mock.calls].find(
+        ([registered]) => registered === wording
+      )?.[1].length
+    expect(arity('I am on the {string} metro')).toBe(1)
+    expect(arity('I {string} geolocation and set the location to {string}, {string}')).toBe(3)
+  })
+
   test('refuses a project step that redefines a library step', () => {
     const clash = { ...projectStep, keyword: 'When' as const, wording: librarySteps[0].wording }
     expect(() => registerSteps(fakeCucumber(), { context, projectSteps: [clash] })).toThrow(

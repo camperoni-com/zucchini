@@ -1,5 +1,6 @@
 // Registers the library's steps, and the project's own, with Cucumber. The runner's Given/When/Then
 // are passed in, so the library doesn't depend on a particular Cucumber runner.
+import { compileWording } from './expressions.ts'
 import { librarySteps } from './library.ts'
 import type { StepContext, StepDefinition, StepKeyword } from './types.ts'
 
@@ -18,7 +19,10 @@ export const registerSteps = (
       throw new Error(`Step defined twice: "${step.wording}"`)
     }
     seen.add(step.wording)
-    cucumber[step.keyword](step.wording, (...args: unknown[]) => step.run(context, ...args))
+    const code = (...args: unknown[]) => step.run(context, ...args)
+    // Cucumber checks that a step function takes one argument per parameter in its wording.
+    Object.defineProperty(code, 'length', { value: compileWording(step.wording).parameterTypes.length })
+    cucumber[step.keyword](step.wording, code)
   }
   return steps
 }
