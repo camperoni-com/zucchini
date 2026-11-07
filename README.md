@@ -237,6 +237,13 @@ results file (or `--out`); the latest run of a pickle on a browser wins:
 node packages/living-spec/bin/merge-results.ts <results.json>... [--out <file>]
 ```
 
+In Camperoni's CI, `.github/workflows/contracts.yml` runs `npm run living-spec:contracts -- --browser <browser>`
+in one job per browser and uploads each job's results file. `ci.yml` calls it in the E2E jobs' tiers: Chromium on
+every PR, Firefox and WebKit on release PRs. The Storybook deploy doesn't run the contracts again. Merges are
+fast-forwards, so it downloads the results of the CI runs for the commit it deploys and merges them with
+`npm run living-spec:merge-results` before `build-storybook`. The deployed docs then show the results for the
+commit they were built from.
+
 **Quirks the runner handles,** so a change in the runner, Vitest or Storybook touches `src/runner/` only:
 
 - `@lotun/vitest-cucumber` and its browser entry stay out of Vite's pre-bundling (it can't follow the
