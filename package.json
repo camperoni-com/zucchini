@@ -8,15 +8,23 @@
   "exports": {
     ".": "./src/index.ts",
     "./storybook": "./src/storybook/ContractsDocsPage.tsx",
-    "./vite": "./src/storybook/vitePlugin.ts"
+    "./vite": "./src/storybook/vitePlugin.ts",
+    "./runner": "./src/runner/vitest.ts",
+    "./runner/preview": "./src/runner/preview.ts"
   },
   "peerDependencies": {
+    "@cucumber/cucumber": "12.x || 13.x",
     "@cucumber/cucumber-expressions": "18.0.1",
     "@cucumber/gherkin": "34.0.0",
     "@cucumber/messages": "27.2.0",
+    "@lotun/vitest-cucumber": "0.5.4",
     "@storybook/addon-docs": "^10.6.5",
+    "@storybook/addon-vitest": "^10.6.5",
+    "@vitest/browser-playwright": "^5.1.0",
+    "playwright": "*",
     "react": "^18.0.0",
     "storybook": "^10.6.5",
-    "vite": ">=5.0.0 <9.0.0"
+    "vite": ">=5.0.0 <9.0.0",
+    "vitest": "^5.1.0"
   }
 }

@@ -33,13 +33,13 @@ export default defineConfig({
 })
 ```
 
-| Setting           | Default                         | Read by                        | Overridden by                                        |
-| ----------------- | ------------------------------- | ------------------------------ | ---------------------------------------------------- |
-| `contracts`       | `src`                           | linter, Storybook plugin       | `lint.ts --root`, plugin option `dir`                |
-| `catalog`         | `docs/living-spec`              | catalog command, linter        | `catalog.ts --out`, `lint.ts --catalog <steps.json>` |
-| `projectSteps`    | none                            | catalog command                | `catalog.ts --project-steps`                         |
-| `results`         | `test-results/living-spec.json` | Storybook plugin (runner soon) | plugin option `results`                              |
-| `testIdAttribute` | `data-testid`                   | the runner (not yet built)     |                                                      |
+| Setting           | Default                         | Read by                          | Overridden by                                        |
+| ----------------- | ------------------------------- | -------------------------------- | ---------------------------------------------------- |
+| `contracts`       | `src`                           | linter, Storybook plugin, runner | `lint.ts --root`, plugin option `dir`                |
+| `catalog`         | `docs/living-spec`              | catalog command, linter          | `catalog.ts --out`, `lint.ts --catalog <steps.json>` |
+| `projectSteps`    | none                            | catalog command, runner          | `catalog.ts --project-steps`                         |
+| `results`         | `test-results/living-spec.json` | Storybook plugin, runner         | plugin option `results`                              |
+| `testIdAttribute` | `data-testid`                   | runner                           |                                                      |
 
 An unknown setting, or one that isn't a string, is an error.
 
@@ -93,11 +93,10 @@ Feature: MapViewComponent
         ...
 ```
 
-### The contracts aren't run yet
+### Running them
 
-The contracts beside the stories are linted but not executed. They will run as Vitest browser tests once
-the repo is on Vite 7 and Vitest 4 (the runner slice of PRD #1428). Until then, the old Storybook E2E
-scenarios in `e2e/features` keep running unchanged.
+The contracts run as Vitest browser tests (see [Running the contracts](#running-the-contracts)). The old
+Storybook E2E scenarios in `e2e/features` keep running unchanged next to them until they're retired.
 
 ## Steps
 
@@ -181,6 +180,77 @@ config.
 Story names come from Storybook's CSF reader, an internal Storybook API; `src/contracts/stories.ts` is the
 only module that uses it. In Camperoni, `npm run living-spec:lint` lints `src/` and runs in CI.
 
+## Running the contracts
+
+The runner renders each story with Storybook's Vitest add-on, in Vitest's browser mode, and runs the scenarios
+bound to it with [`@lotun/vitest-cucumber`](https://github.com/lotun-io/vitest-cucumber), pinned to an exact
+version. Everything runner-specific lives in `src/runner/`; the steps only see the driver.
+
+- **One project per browser and device,** named `contracts-<browser>-<device>`: Chromium, Firefox and
+  WebKit, each on `desktop` (Playwright's default 1280x720 context) and `mobile` (its iPhone 13; Firefox has
+  no mobile emulation, so it gets the same size, touch and user agent without `isMobile`).
+- **Bindings first.** Before anything runs, the runner binds every pickle to its story, as the linter does,
+  and stops on a problem. A pickle tagged with a device (`@desktop`, `@mobile`, usually on an Examples block)
+  runs only on that device. Only the story files with a contract beside them run.
+- **Per story.** A project-level `afterEach` (`runStoryContracts`) runs exactly the lines bound to the story
+  that just rendered, by handing Cucumber `file:line:line`. The first scenario uses that render; each further
+  one gets a fresh mount (`renderToCanvas()`). Before each scenario the mouse is parked in a corner, and a
+  `deny` geolocation step revokes what an earlier scenario granted. A story test fails with the first failing
+  scenario's error, pointing at the feature file's lines.
+- **Results.** An `After` hook records each pickle's run in the [results file](#the-results-file), with
+  `name`, `browser` (e.g. `webkit-mobile`) and `hash`. A run replaces its own browser and device's entries
+  and keeps the others', so one file gathers every browser that ran.
+- **Driver.** Clicks and hovers go through Vitest's `userEvent`; geolocation and the mouse reset through
+  Vitest commands that call Playwright's page and context in Node.
+- **Settings** come from the project config: `contracts`, `projectSteps`, `results` and `testIdAttribute`.
+
+Wiring, as in Camperoni:
+
+```ts
+// vitest.living-spec.config.mts: the app's Vite config plus the contract projects
+export default mergeConfig(viteConfig, defineConfig({ test: { projects: await livingSpecProjects({ port: 5173 }) } }))
+
+// .storybook/preview.ts
+afterEach: runStoryContracts,
+parameters: { viewport: { options: { ...INITIAL_VIEWPORTS, ...contractViewports } } },
+```
+
+`runStoryContracts` does nothing outside a contract run, so the normal Storybook is unaffected and doesn't
+bundle the runner. `livingSpecProjects()` takes the browsers, devices, port, extra context options (Camperoni
+passes its time zone) and the per-story timeout (300 s by default; Storybook's own 15 s is too short for a story
+with 11 scenarios).
+
+Run it with `bin/contracts.ts`, which runs the projects one after the other (they all serve on the same port),
+keeps going after a failure, prints each run's result and time, and exits 1 if any failed:
+
+```sh
+node packages/living-spec/bin/contracts.ts --config vitest.living-spec.config.mts [--browser chromium,firefox,webkit] [--device desktop,mobile]
+```
+
+The browser defaults to `chromium`, the devices to both. In Camperoni: `npm run living-spec:contracts`, with
+`-- --browser webkit` to pick others. Each browser needs `npx playwright install <browser>`.
+
+`bin/merge-results.ts` merges results files, such as one per browser from separate CI jobs, into the config's
+results file (or `--out`); the latest run of a pickle on a browser wins:
+
+```sh
+node packages/living-spec/bin/merge-results.ts <results.json>... [--out <file>]
+```
+
+**Quirks the runner handles,** so a change in the runner, Vitest or Storybook touches `src/runner/` only:
+
+- `@lotun/vitest-cucumber` and its browser entry stay out of Vite's pre-bundling (it can't follow the
+  plugin's virtual module), and `@cucumber/cucumber-expressions` is pre-bundled up front, so the page doesn't
+  reload under the tests when the steps first load.
+- The plugin reads Cucumber's config file from the working directory; the runner points it at its own empty
+  `cucumber.json` through `CUCUMBER_OPTIONS`, so a project's `cucumber.js` (Camperoni's E2E) stays out.
+- Storybook's Vitest add-on renders stories at 1200x900 unless a `viewport` global picks a size, hence
+  `contractViewports` and an outer page larger than any story: Playwright can't click inside the scaled-down
+  iframe Vitest would otherwise use.
+- `runCucumber()` passes no `tags`; device filtering happens in the bindings instead.
+- Vitest 5 reads a browser project's port from `test.api`. A key restricted by referrer (Camperoni's Google
+  Maps key accepts `localhost:5173` and `localhost:6006`) needs a fixed one.
+
 ## Spec view in Storybook
 
 Each component's docs page shows its contracts after the default autodocs blocks: every scenario with the
@@ -214,7 +284,7 @@ parameters: { docs: { page: ContractsDocsPage } }
 ### The results file
 
 The results file (the config's `results`) is optional; without it every scenario shows "not run yet". The
-contract runner will write it as:
+contract runner writes it as:
 
 ```json
 {
