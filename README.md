@@ -261,6 +261,39 @@ commit they were built from.
 - Vitest 5 reads a browser project's port from `test.api`. A key restricted by referrer (Camperoni's Google
   Maps key accepts `localhost:5173` and `localhost:6006`) needs a fixed one.
 
+## Deliberate-break check
+
+A contract that passes whatever the component does tests nothing. The deliberate-break (mutation) check proves
+the passes are real: it applies a fixed list of breaks one at a time, each changing one expectation in a contract
+to a wrong one, runs the contracts of that story file, and checks that the broken scenario or Examples row
+failed.
+
+```sh
+node packages/living-spec/bin/mutation.ts --config <vitest config> --breaks <module> \
+  [--browser chromium,firefox,webkit] [--device desktop,mobile] [--break <name>]...
+```
+
+- `--breaks` names a module that exports `breaks: Break[]`. A break has a `name`, what it `checks`, the
+  contract `file`, and the text to `find` (its first occurrence) and `replace`; `devices` limits it to the
+  devices its pickle runs on. A changed Examples row must fail itself; a changed step must fail a pickle of
+  its scenario.
+- The browser defaults to `chromium` and the device to `desktop`: one cheap run per break. `--break` (repeatable)
+  checks only the breaks named.
+- Every break is reverted after its run, even when the run fails or is interrupted with Ctrl-C, and the
+  results file is put back as it was, so nothing leaks into the working tree or the spec view.
+- It prints each break as `caught` (with the failure it caused), `MISSED` (the broken pickles still passed),
+  `NOT RUN` (none of them ran) or `ERROR` (its text is gone from the contract), plus any failure the break
+  doesn't explain, and exits 1 on any of those.
+
+**When to run it:** by hand, after changing the step library, the runner or the DOM rules, after upgrading
+Vitest, Storybook or `@lotun/vitest-cucumber`, and when adding a kind of step or contract the breaks don't
+cover yet (add a break for it). It isn't part of CI. A `MISSED` break means a contract can pass without
+checking what it says; fix the step or the contract before trusting its passes.
+
+In Camperoni, `npm run living-spec:mutation` runs it with the breaks in `living-spec.breaks.mts`: the
+spike's 8, one per kind of step plus two after map interactions. It takes about 4 minutes on Chromium. Pass
+options after `--`, e.g. `npm run living-spec:mutation -- --break map-zoom` or `-- --browser webkit`.
+
 ## Spec view in Storybook
 
 Each component's docs page shows its contracts after the default autodocs blocks: every scenario with the
