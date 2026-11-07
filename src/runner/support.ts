@@ -78,7 +78,8 @@ After(async function (this: ContractWorld, { gherkinDocument, pickle, result }) 
     hash: await pickleHash(content),
     status: String(result?.status ?? 'unknown').toLowerCase(),
     durationMs: Math.round(performance.now() - (this.startedAt ?? performance.now())),
-    ...(result?.message ? { error: result.message.split('\n')[0] } : {}),
+    // The failure's first line, without the "Error: " Cucumber puts in front.
+    ...(result?.message ? { error: result.message.split('\n')[0].replace(/^Error: /, '') } : {}),
     ranAt: new Date().toISOString(),
   })
 })

@@ -198,8 +198,10 @@ version. Everything runner-specific lives in `src/runner/`; the steps only see t
   `deny` geolocation step revokes what an earlier scenario granted. A story test fails with the first failing
   scenario's error, pointing at the feature file's lines.
 - **Results.** An `After` hook records each pickle's run in the [results file](#the-results-file), with
-  `name`, `browser` (e.g. `webkit-mobile`) and `hash`. A run replaces its own browser and device's entries
-  and keeps the others', so one file gathers every browser that ran.
+  `name`, `browser` (e.g. `webkit-mobile`) and `hash`. A run replaces all of its own browser and device's
+  entries and keeps the others', so one file gathers every browser that ran, and a story that crashed before
+  its scenarios ran doesn't keep an old pass. (A run limited to some story files therefore leaves the other
+  stories "not run yet" on that browser and device.)
 - **Driver.** Clicks and hovers go through Vitest's `userEvent`; geolocation and the mouse reset through
   Vitest commands that call Playwright's page and context in Node.
 - **Settings** come from the project config: `contracts`, `projectSteps`, `results` and `testIdAttribute`.
@@ -221,7 +223,8 @@ passes its time zone) and the per-story timeout (300 s by default; Storybook's o
 with 11 scenarios).
 
 Run it with `bin/contracts.ts`, which runs the projects one after the other (they all serve on the same port),
-keeps going after a failure, prints each run's result and time, and exits 1 if any failed:
+keeps going after a failure (Ctrl-C stops it), prints each run's result and time, and exits 1 if any failed.
+Arguments after the options go to Vitest, e.g. a story file to run only that one:
 
 ```sh
 node packages/living-spec/bin/contracts.ts --config vitest.living-spec.config.mts [--browser chromium,firefox,webkit] [--device desktop,mobile]
