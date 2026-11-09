@@ -15,8 +15,8 @@
   "peerDependencies": {
     "@cucumber/cucumber": "12.x || 13.x",
     "@cucumber/cucumber-expressions": "18.0.1",
-    "@cucumber/gherkin": "34.0.0",
-    "@cucumber/messages": "27.2.0",
+    "@cucumber/gherkin": "42.0.1",
+    "@cucumber/messages": "34.2.1",
     "@lotun/vitest-cucumber": "0.5.4",
     "@storybook/addon-docs": "^10.6.5",
     "@storybook/addon-vitest": "^10.6.5",
