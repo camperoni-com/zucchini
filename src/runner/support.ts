@@ -9,7 +9,7 @@ import { commands } from 'vitest/browser'
 import { createStepContext } from '../steps/dom.ts'
 import { type DefineStep, registerSteps } from '../steps/register.ts'
 import { type PickleContent, pickleHash } from '../view/pickleHash.ts'
-import { vitestDriver } from './driver.ts'
+import { geolocationFake, vitestDriver } from './driver.ts'
 import { runtime, type StoryEntry, type WorldParameters } from './runtime.ts'
 
 // The old E2E steps' default (e2e/steps/hooks.js).
@@ -36,6 +36,7 @@ const entryOf = (world: ContractWorld) => {
 
 Before(async function (this: ContractWorld) {
   await commands.livingSpecResetPointer()
+  geolocationFake.reset()
   const entry = entryOf(this)
   // The story already rendered for its first scenario. Each further one gets a fresh mount, like the old
   // E2E's page load per scenario.

@@ -163,7 +163,8 @@ export const waitSeconds: StepDefinition = {
 export const setGeolocation: StepDefinition = {
   keyword: 'When',
   wording: 'I {string} geolocation and set the location to {string}, {string}',
-  meaning: 'With "allow" or "deny", grants or denies the geolocation permission and sets the reported location.',
+  meaning:
+    'With "allow", the page\'s location requests get the given location; with "deny", they fail as when the visitor blocks them.',
   example: 'I "allow" geolocation and set the location to "51.50", "-0.12"',
   run: async (context, permission: string, latitude: string, longitude: string) => {
     await context.driver.setGeolocation(permission, latitude, longitude)

@@ -194,16 +194,21 @@ version. Everything runner-specific lives in `src/runner/`; the steps only see t
   runs only on that device. Only the story files with a contract beside them run.
 - **Per story.** A project-level `afterEach` (`runStoryContracts`) runs exactly the lines bound to the story
   that just rendered, by handing Cucumber `file:line:line`. The first scenario uses that render; each further
-  one gets a fresh mount (`renderToCanvas()`). Before each scenario the mouse is parked in a corner, and a
-  `deny` geolocation step revokes what an earlier scenario granted. A story test fails with the first failing
+  one gets a fresh mount (`renderToCanvas()`). Before each scenario the mouse is parked in a corner and the
+  geolocation fake is reset, so nothing carries over. A story test fails with the first failing
   scenario's error, pointing at the feature file's lines.
 - **Results.** An `After` hook records each pickle's run in the [results file](#the-results-file), with
   `name`, `browser` (e.g. `webkit-mobile`) and `hash`. A run replaces all of its own browser and device's
   entries and keeps the others', so one file gathers every browser that ran, and a story that crashed before
   its scenarios ran doesn't keep an old pass. (A run limited to some story files therefore leaves the other
   stories "not run yet" on that browser and device.)
-- **Driver.** Clicks and hovers go through Vitest's `userEvent`; geolocation and the mouse reset through
-  Vitest commands that call Playwright's page and context in Node.
+- **Driver.** Clicks and hovers go through Vitest's `userEvent`, and the mouse reset through a Vitest command
+  that moves Playwright's mouse in Node. Geolocation is a fake of the page's `navigator.geolocation`: with
+  `allow`, its location requests get the scenario's location; with `deny`, they fail as when a visitor blocks
+  them (code 1, `PERMISSION_DENIED`). Playwright's permissions don't fit, since the stories share one page:
+  WebKit still allowed after they were cleared, and Firefox answered "denied" after they were granted. The
+  contracts check how a component handles the answer, the same way in every browser, not whether a browser
+  grants it.
 - **Settings** come from the project config: `contracts`, `projectSteps`, `results` and `testIdAttribute`.
 
 Wiring, as in Camperoni:

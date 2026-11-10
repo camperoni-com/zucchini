@@ -26,24 +26,5 @@ export const createCommands = ({ resultsFile }: { resultsFile: string }) => {
     await ctx.page.mouse.move(0, 0)
   }
 
-  // Permissions belong to the browser context, which the stories of a run share, so "deny" actively revokes
-  // what an earlier scenario granted (the old E2E step only granted nothing on a fresh context).
-  const livingSpecSetGeolocation: BrowserCommand<[string, string, string]> = async (
-    ctx,
-    permission,
-    latitude,
-    longitude
-  ) => {
-    playwrightOnly('livingSpecSetGeolocation', ctx.provider.name)
-    if (permission === 'allow') {
-      await ctx.context.grantPermissions(['geolocation'])
-      await ctx.context.setGeolocation({ latitude: Number(latitude), longitude: Number(longitude) })
-    } else if (permission === 'deny') {
-      await ctx.context.clearPermissions()
-    } else {
-      throw new Error(`Invalid permissionType: ${permission}. Expected 'allow' or 'deny'.`)
-    }
-  }
-
-  return { livingSpecRecord, livingSpecResetPointer, livingSpecSetGeolocation }
+  return { livingSpecRecord, livingSpecResetPointer }
 }
