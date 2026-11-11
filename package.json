@@ -17,10 +17,14 @@
     "build": "tsdown",
     "demo:install": "node scripts/demo-install.mjs",
     "lint": "eslint . --max-warnings 0",
-    "prepack": "tsdown --logLevel warn",
+    "prepack": "tsdown --logLevel error",
+    "release": "changeset publish",
+    "release:dry-run": "node scripts/publish-dry-run.mjs",
+    "release:first": "npm publish --access public",
     "test": "vitest run",
     "test:packed": "vitest run --config vitest.packed.config.ts",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "version-packages": "changeset version && npm install --package-lock-only --no-audit --no-fund"
   },
   "exports": {
     ".": {
@@ -72,6 +76,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@changesets/cli": "3.0.3",
     "@eslint/js": "10.0.1",
     "@storybook/addon-docs": "10.6.6",
     "@storybook/addon-vitest": "10.6.6",

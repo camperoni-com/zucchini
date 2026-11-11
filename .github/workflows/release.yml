@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  # npm trusted publishing (OIDC) and provenance.
+  id-token: write
+
+jobs:
+  release:
+    name: Version or publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # npm 11.5.1 or later publishes through a trusted publisher; Node 24 ships it.
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      # With changesets on main, opens (or updates) the "Version packages" PR. Once that PR is merged, publishes
+      # the new version to npm. Publishing stays off until the NPM_PUBLISH repository variable is "true", which
+      # is set once npm's trusted publisher is configured (see RELEASING.md); until then this job only versions.
+      - uses: changesets/action@v1
+        with:
+          version: npm run version-packages
+          publish: ${{ vars.NPM_PUBLISH == 'true' && 'npm run release' || '' }}
+          title: Version packages
+          commit: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'

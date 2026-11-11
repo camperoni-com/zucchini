@@ -1,0 +1,22 @@
+name: DCO
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    name: Developer Certificate of Origin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Every commit in the PR needs a Signed-off-by line for its author (git commit -s). See CONTRIBUTING.md.
+      - run: node scripts/dco.mjs ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}

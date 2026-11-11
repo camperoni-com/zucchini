@@ -41,6 +41,19 @@ jobs:
       # dependencies, and imports and type-checks it there.
       - run: npm run test:packed
 
+  release-dry-run:
+    name: Release dry run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # The maintainer's first publish and a `next` prerelease, as dry runs.
+      - run: npm run release:dry-run
+
   demo:
     name: Demo contracts (${{ matrix.browser }})
     runs-on: ubuntu-latest
