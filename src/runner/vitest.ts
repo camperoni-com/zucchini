@@ -38,6 +38,8 @@ export const RUNNER_MODULE_ID = 'virtual:zucchini/runner'
 const RESOLVED_ID = `\0${RUNNER_MODULE_ID}`
 
 const here = path.dirname(fileURLToPath(import.meta.url))
+// The runner's own modules beside this one: .ts in the repo, .js once built.
+const sibling = (name: string) => path.join(here, `${name}${path.extname(fileURLToPath(import.meta.url))}`)
 
 // @lotun/vitest-cucumber reads Cucumber's own config file from the working directory, merged under its
 // options. A project's cucumber.js for other suites (Camperoni's E2E: --require e2e/steps, --parallel 5) must
@@ -158,13 +160,13 @@ export const zucchiniProjects = async ({
             configDir: path.resolve(root, configDir),
             initialGlobals: { viewport: { value: viewportKey(device), isRotated: false } },
           }),
-          cucumber({ import: [path.relative(root, path.join(here, 'support.ts'))] }),
+          cucumber({ import: [path.relative(root, sibling('support'))] }),
           runnerPlugin({ settings, projectStepsFile, resultsFile, storyFiles: bindings.storyFiles }),
         ],
         test: {
           name: projectName(browser, device),
           testTimeout,
-          setupFiles: [path.join(here, 'setup.ts')],
+          setupFiles: [sibling('setup')],
           // The port the browser tests are served on (Vitest 5 reads a browser project's from `test.api`). A
           // fixed one, since an API key restricted by referrer (Google Maps, for one) accepts only known ones.
           api: { port, strictPort: true },

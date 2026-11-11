@@ -11,39 +11,64 @@
   },
   "type": "module",
   "scripts": {
+    "build": "tsdown",
     "lint": "eslint . --max-warnings 0",
+    "prepack": "tsdown --logLevel warn",
     "test": "vitest run",
+    "test:packed": "vitest run --config vitest.packed.config.ts",
     "typecheck": "tsc -p ."
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./storybook": "./src/storybook/ContractsDocsPage.tsx",
-    "./vite": "./src/storybook/vitePlugin.ts",
-    "./runner": "./src/runner/vitest.ts",
-    "./runner/preview": "./src/runner/preview.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./storybook": {
+      "types": "./dist/storybook.d.ts",
+      "default": "./dist/storybook.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "default": "./dist/vite.js"
+    },
+    "./runner": {
+      "types": "./dist/runner/vitest.d.ts",
+      "default": "./dist/runner/vitest.js"
+    },
+    "./runner/preview": {
+      "types": "./dist/runner/preview.d.ts",
+      "default": "./dist/runner/preview.js"
+    },
+    "./package.json": "./package.json"
   },
-  "peerDependencies": {
-    "@cucumber/cucumber": "12.x || 13.x",
-    "@cucumber/cucumber-expressions": "18.0.1",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@cucumber/cucumber": "13.3.0",
+    "@cucumber/cucumber-expressions": "18.1.0",
     "@cucumber/gherkin": "42.0.1",
     "@cucumber/messages": "34.2.1",
-    "@lotun/vitest-cucumber": "0.5.4",
+    "@lotun/vitest-cucumber": "0.5.4"
+  },
+  "peerDependencies": {
     "@storybook/addon-docs": "^10.6.5",
     "@storybook/addon-vitest": "^10.6.5",
     "@vitest/browser-playwright": "^5.1.0",
     "playwright": "*",
     "react": "^18.0.0",
     "storybook": "^10.6.5",
-    "vite": ">=5.0.0 <9.0.0",
+    "vite": "^6.4.0 || ^7.0.0 || ^8.0.0",
     "vitest": "^5.1.0"
   },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
-    "@cucumber/cucumber": "13.3.0",
-    "@cucumber/cucumber-expressions": "18.1.0",
-    "@cucumber/gherkin": "42.0.1",
-    "@cucumber/messages": "34.2.1",
     "@eslint/js": "10.0.1",
-    "@lotun/vitest-cucumber": "0.5.4",
     "@storybook/addon-docs": "10.6.6",
     "@storybook/addon-vitest": "10.6.6",
     "@types/node": "24.19.2",
@@ -62,6 +87,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "storybook": "10.6.6",
+    "tsdown": "0.23.7",
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.2",
     "vite": "8.3.6",
