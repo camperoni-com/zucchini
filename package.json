@@ -15,6 +15,7 @@
   },
   "scripts": {
     "build": "tsdown",
+    "demo:install": "node scripts/demo-install.mjs",
     "lint": "eslint . --max-warnings 0",
     "prepack": "tsdown --logLevel warn",
     "test": "vitest run",

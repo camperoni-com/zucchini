@@ -1,0 +1,118 @@
+{
+  "generatedBy": "npm run catalog",
+  "steps": [
+    {
+      "keyword": "Then",
+      "wording": "I should assert that the element with id {string} contains {string}",
+      "parameters": [
+        "string",
+        "string"
+      ],
+      "meaning": "The text of the first element with this test id contains the value.",
+      "example": "I should assert that the element with id \"day-length-label\" contains \"Full day\"",
+      "source": "library"
+    },
+    {
+      "keyword": "Then",
+      "wording": "I should assert that the element with id {string} has an exact value of {string}",
+      "parameters": [
+        "string",
+        "string"
+      ],
+      "meaning": "The text of the first element with this test id is exactly the value.",
+      "example": "I should assert that the element with id \"ages-label\" has an exact value of \"5-17 years old\"",
+      "source": "library"
+    },
+    {
+      "keyword": "Then",
+      "wording": "I should assert that the element with id {string} is of type {string}",
+      "parameters": [
+        "string",
+        "string"
+      ],
+      "meaning": "The one element with this test id has this tag name (for example \"a\" or \"button\").",
+      "example": "I should assert that the element with id \"map-marker-card-directions-link\" is of type \"a\"",
+      "source": "library"
+    },
+    {
+      "keyword": "Then",
+      "wording": "I should assert that the element with id {string} has an attribute {string} with value {string}",
+      "parameters": [
+        "string",
+        "string",
+        "string"
+      ],
+      "meaning": "The one element with this test id has the attribute set to exactly the value.",
+      "example": "I should assert that the element with id \"map-view-component\" has an attribute \"data-map-zoom\" with value \"6\"",
+      "source": "library"
+    },
+    {
+      "keyword": "Then",
+      "wording": "I should assert that the {string} element {string} visible",
+      "parameters": [
+        "string",
+        "string"
+      ],
+      "meaning": "With \"is_visible\", the one element with this test id becomes visible; with \"is_not_visible\", none is visible.",
+      "example": "I should assert that the \"favorite-icon-camp-id-0\" element \"is_visible\" visible",
+      "source": "library"
+    },
+    {
+      "keyword": "When",
+      "wording": "I click on the element with id {string}",
+      "parameters": [
+        "string"
+      ],
+      "meaning": "Clicks the one element with this test id, once it is visible.",
+      "example": "I click on the element with id \"user-location-button\"",
+      "source": "library"
+    },
+    {
+      "keyword": "When",
+      "wording": "I click on the element which has an attribute {string} with value {string}",
+      "parameters": [
+        "string",
+        "string"
+      ],
+      "meaning": "Clicks the one element whose attribute has exactly this value, once it is visible.",
+      "example": "I click on the element which has an attribute \"aria-label\" with value \"Zoom in\"",
+      "source": "library"
+    },
+    {
+      "keyword": "When",
+      "wording": "I {string} over the element with id {string}",
+      "parameters": [
+        "string",
+        "string"
+      ],
+      "meaning": "With \"hover\" or \"click\", hovers or clicks the one element with this test id, then lets the UI settle.",
+      "example": "I \"hover\" over the element with id \"combinable-camp-id-0-label\"",
+      "source": "library"
+    },
+    {
+      "keyword": "When",
+      "wording": "I wait for {string} seconds",
+      "parameters": [
+        "string"
+      ],
+      "meaning": "Pauses for the given number of seconds.",
+      "example": "I wait for \"2\" seconds",
+      "source": "library",
+      "discouraged": {
+        "reason": "A fixed sleep hides timing bugs and slows every run; a step that checks the page waits for it on its own."
+      }
+    },
+    {
+      "keyword": "When",
+      "wording": "I {string} geolocation and set the location to {string}, {string}",
+      "parameters": [
+        "string",
+        "string",
+        "string"
+      ],
+      "meaning": "With \"allow\", the page's location requests get the given location; with \"deny\", they fail as when the visitor blocks them.",
+      "example": "I \"allow\" geolocation and set the location to \"51.50\", \"-0.12\"",
+      "source": "library"
+    }
+  ]
+}

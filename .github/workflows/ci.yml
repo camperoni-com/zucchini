@@ -40,3 +40,40 @@ jobs:
       # Builds and packs the package, installs the tarball into a throwaway project with only the peer
       # dependencies, and imports and type-checks it there.
       - run: npm run test:packed
+
+  demo:
+    name: Demo contracts (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    defaults:
+      run:
+        working-directory: examples/demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            examples/demo/package-lock.json
+      - run: npm ci
+        working-directory: .
+      # The demo's own dependencies, plus Zucchini from the packed tarball, as a user gets it from npm.
+      - run: npm run demo:install
+        working-directory: .
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run typecheck
+      - run: npm run catalog:check
+      - run: npm run lint
+      # Desktop and mobile.
+      - run: npm run contracts -- --browser ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-results-${{ matrix.browser }}
+          path: examples/demo/test-results/zucchini.json
+          if-no-files-found: ignore

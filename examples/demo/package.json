@@ -1,0 +1,33 @@
+{
+  "name": "zucchini-demo",
+  "private": true,
+  "description": "Zucchini's demo: a small Storybook whose components carry their contracts. Installs Zucchini from the packed tarball, as a user would from npm (npm run demo:install in the repo root).",
+  "type": "module",
+  "scripts": {
+    "build-storybook": "storybook build",
+    "catalog": "zucchini catalog --command 'npm run catalog'",
+    "catalog:check": "zucchini catalog --command 'npm run catalog' --check",
+    "contracts": "zucchini contracts --config vitest.zucchini.config.ts",
+    "lint": "zucchini lint",
+    "storybook": "storybook dev -p 6006",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.6.6",
+    "@storybook/addon-vitest": "10.6.6",
+    "@storybook/react-vite": "10.6.6",
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "6.3.0",
+    "@vitest/browser-playwright": "5.1.0",
+    "playwright": "1.65.0",
+    "storybook": "10.6.6",
+    "typescript": "5.9.3",
+    "vite": "8.3.6",
+    "vitest": "5.1.0"
+  }
+}
