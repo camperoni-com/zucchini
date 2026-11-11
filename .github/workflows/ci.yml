@@ -51,7 +51,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      # The maintainer's first publish and a `next` prerelease, as dry runs.
+      # The next release and a `next` prerelease, as dry runs from the packed package.
       - run: npm run release:dry-run
 
   demo:
