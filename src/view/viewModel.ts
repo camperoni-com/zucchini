@@ -88,6 +88,8 @@ export interface ScenarioView {
   status: Status
   /** The browsers any of its pickles failed on, from the results' `browser` labels. */
   failedOn: string[]
+  /** Every browser label its current results came from, sorted. */
+  ranOn: string[]
   /** When its latest result was recorded. */
   ranAt?: string
   /** The first failure's message. */
@@ -195,6 +197,9 @@ const failedBrowsers = (results: readonly ScenarioResult[]) => [
   ...new Set(results.filter(isFailure).flatMap((r) => (r.browser ? [r.browser] : []))),
 ]
 
+const browsersOf = (results: readonly ScenarioResult[]) =>
+  [...new Set(results.flatMap((r) => (r.browser ? [r.browser] : [])))].sort()
+
 const uniqueStories = (stories: readonly (StoryLink | undefined)[]) => {
   const byId = new Map<string, StoryLink>()
   for (const story of stories) {
@@ -278,6 +283,7 @@ export const buildContractView = async ({
       stories: uniqueStories(pickles.map((b) => linkTo(b.story))),
       status,
       failedOn: failedBrowsers(current),
+      ranOn: browsersOf(current),
       ranAt: runs
         .flatMap((r) => [...r.current, ...r.stale])
         .flatMap((r) => (r.ranAt ? [r.ranAt] : []))

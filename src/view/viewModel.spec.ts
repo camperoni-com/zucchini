@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 
 import { bindFeature, parseFeature } from '../contracts/bindings.ts'
 import type { StoryFile } from '../contracts/stories.ts'
+import { describeRuns } from './describeRuns.ts'
 import { pickleHash } from './pickleHash.ts'
 import { buildContractView, type Results } from './viewModel.ts'
 
@@ -283,6 +284,50 @@ describe('failing browsers', () => {
       scenarios: [{ file: FILE, line: 8, status: 'passed', browser: 'webkit-mobile' }],
     })
     expect(passed.scenarios[0].failedOn).toEqual([])
+  })
+})
+
+describe('browsers it ran on', () => {
+  test('a scenario lists every browser and device its current results came from, once each, in order', async () => {
+    const scenario = (
+      await view(OUTLINE, {
+        ranAt: '2026-11-02T10:00:00Z',
+        scenarios: [
+          { file: FILE, line: 8, status: 'passed', browser: 'webkit-mobile' },
+          { file: FILE, line: 9, status: 'passed', browser: 'chromium-desktop' },
+          { file: FILE, line: 10, status: 'failed', browser: 'webkit-mobile' },
+          { file: FILE, line: 10, status: 'passed', browser: 'firefox-desktop' },
+        ],
+      })
+    ).scenarios[0]
+    expect(scenario.ranOn).toEqual(['chromium-desktop', 'firefox-desktop', 'webkit-mobile'])
+  })
+
+  test('none without results or browser labels', async () => {
+    expect((await view(OUTLINE, null)).scenarios[0].ranOn).toEqual([])
+    const unlabelled = await view(OUTLINE, {
+      ranAt: '2026-11-02T10:00:00Z',
+      scenarios: [{ file: FILE, line: 8, status: 'passed' }],
+    })
+    expect(unlabelled.scenarios[0].ranOn).toEqual([])
+  })
+})
+
+describe('describeRuns', () => {
+  test('every browser on every device reads as two lists', () => {
+    const all = ['chromium', 'firefox', 'webkit'].flatMap((b) => [`${b}-desktop`, `${b}-mobile`])
+    expect(describeRuns(all)).toBe('Chromium, Firefox and WebKit, desktop and mobile')
+    expect(describeRuns(['chromium-desktop', 'chromium-mobile'])).toBe('Chromium, desktop and mobile')
+    expect(describeRuns(['firefox-mobile', 'webkit-mobile'])).toBe('Firefox and WebKit, mobile')
+  })
+
+  test('a partial mix, or labels of its own, are listed as they are', () => {
+    expect(describeRuns(['chromium-desktop', 'webkit-mobile'])).toBe('chromium-desktop and webkit-mobile')
+    expect(describeRuns(['ci', 'local'])).toBe('ci and local')
+  })
+
+  test('nothing for no runs', () => {
+    expect(describeRuns([])).toBe('')
   })
 })
 

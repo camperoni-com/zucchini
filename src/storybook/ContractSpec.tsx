@@ -1,6 +1,7 @@
 // Renders one contract's view model: its scenarios, step groups, bound stories and statuses.
 import type { ReactNode } from 'react'
 
+import { describeRuns } from '../view/describeRuns.ts'
 import type { ContractView, ExamplesView, ScenarioView, Status, StepView } from '../view/viewModel.ts'
 import { formatTime, plural, STATUS_LABEL, storyHref } from './links.ts'
 
@@ -87,7 +88,12 @@ const Scenario = ({ scenario }: { scenario: ScenarioView }) => (
     <div className="ls-scenario-head">
       <StatusPill status={scenario.status} />
       <h3>{scenario.name}</h3>
-      {scenario.ranAt ? <span className="ls-ran">last run {formatTime(scenario.ranAt)}</span> : null}
+      {scenario.ranAt ? (
+        <span className="ls-ran">
+          last run {formatTime(scenario.ranAt)}
+          {scenario.ranOn.length ? ` in ${describeRuns(scenario.ranOn)}` : null}
+        </span>
+      ) : null}
     </div>
     {scenario.description ? <p className="ls-description">{scenario.description}</p> : null}
     <p className="ls-runs-on">
