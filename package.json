@@ -1,6 +1,6 @@
 {
   "name": "@camperoni/zucchini",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Cucumber's opinionated cousin: generic, imperative Gherkin steps as component contracts for Storybook, rendered into a living spec.",
   "license": "MIT",
