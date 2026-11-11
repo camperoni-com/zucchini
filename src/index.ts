@@ -1,5 +1,5 @@
 export type { Catalog, CatalogEntry, StepSource } from './catalog/catalog.ts'
-export { buildCatalog, catalogToJson, catalogToMarkdown } from './catalog/catalog.ts'
+export { buildCatalog, catalogToJson, catalogToMarkdown, discouragedText } from './catalog/catalog.ts'
 export type { ZucchiniConfig, ResolvedConfig } from './config/config.ts'
 export { DEFAULT_CONFIG, defineConfig } from './config/config.ts'
 export type { PickleContent } from './view/pickleHash.ts'
@@ -8,4 +8,4 @@ export { createStepContext, DEFAULT_BUDGETS, DEFAULT_TEST_ID_ATTRIBUTE } from '.
 export { librarySteps } from './steps/library.ts'
 export type { CucumberDefiners, DefineStep } from './steps/register.ts'
 export { registerSteps } from './steps/register.ts'
-export type { Budgets, Driver, StepContext, StepDefinition, StepKeyword } from './steps/types.ts'
+export type { Budgets, Discouraged, Driver, StepContext, StepDefinition, StepKeyword } from './steps/types.ts'

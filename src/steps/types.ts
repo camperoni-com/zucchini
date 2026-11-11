@@ -35,6 +35,13 @@ export interface StepContext {
   document: Document
 }
 
+export interface Discouraged {
+  /** Why to avoid the step, in a sentence. */
+  reason: string
+  /** What to use instead, if there is something. */
+  instead?: string
+}
+
 export interface StepDefinition {
   keyword: StepKeyword
   /** A Cucumber expression, matched against the step text after its keyword. */
@@ -43,6 +50,8 @@ export interface StepDefinition {
   meaning: string
   /** A real step text (without keyword) that matches `wording`. */
   example: string
+  /** Marks a step contracts should avoid. The catalog shows it and the linter warns, without failing. */
+  discouraged?: Discouraged
   /** Receives the context, then the values of the expression's parameters in order. */
   run(context: StepContext, ...args: unknown[]): Promise<void>
 }

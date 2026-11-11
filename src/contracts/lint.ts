@@ -2,7 +2,9 @@
 // run on a story that exists. Also lists the stories no contract covers.
 import path from 'node:path'
 
+import { discouragedText } from '../catalog/catalog.ts'
 import { compileSteps } from '../steps/expressions.ts'
+import type { Discouraged } from '../steps/types.ts'
 import { bindFeature, componentOf, dedupe, parseFeature, type Problem, stepsById } from './bindings.ts'
 import type { StoryFile } from './stories.ts'
 
@@ -27,6 +29,8 @@ export interface CatalogSource {
 
 export interface LintResult {
   problems: Problem[]
+  /** Uses of discouraged steps. They don't fail the lint. */
+  warnings: Problem[]
   uncovered: UncoveredStories[]
   scenarios: number
   stories: number
@@ -47,8 +51,8 @@ export const lintContracts = ({
 }: {
   features: readonly ContractFile[]
   storyFiles: readonly StoryFile[]
-  /** The catalog's steps; only their wording matters for matching. */
-  steps: readonly { wording: string }[]
+  /** The catalog's steps: their wording for matching, and whether they're discouraged. */
+  steps: readonly { wording: string; discouraged?: Discouraged }[]
   catalog?: CatalogSource
 }): LintResult => {
   const compiled = compileSteps(steps)
@@ -56,6 +60,7 @@ export const lintContracts = ({
   // A step added to the code but not yet to the committed catalog shows up as unknown, so say how to fix that.
   const hint = `If you just added or changed a step definition, run ${catalog ? `\`${catalog.command}\`` : 'the catalog command'}.`
   const problems: Problem[] = []
+  const warnings: Problem[] = []
   const covered = new Set<string>()
   let scenarios = 0
 
@@ -97,6 +102,12 @@ export const lintContracts = ({
             line,
             message: `ambiguous step "${written}" matches ${matches.length} steps in ${catalogName}: ${matches.map((m) => `"${m.step.wording}"`).join(', ')}. ${hint}`,
           })
+        } else if (matches[0].step.discouraged) {
+          warnings.push({
+            file,
+            line,
+            message: `discouraged step "${written}": ${discouragedText(matches[0].step.discouraged)}`,
+          })
         }
       }
     }
@@ -110,8 +121,11 @@ export const lintContracts = ({
     }))
     .filter((s) => s.stories.length)
 
+  const byPlace = (a: Problem, b: Problem) => a.file.localeCompare(b.file) || a.line - b.line
   return {
-    problems: dedupe(problems).sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line),
+    problems: dedupe(problems).sort(byPlace),
+    // An Examples table repeats its steps per row; one warning per line is enough.
+    warnings: dedupe(warnings).sort(byPlace),
     uncovered,
     scenarios,
     stories: storyFiles.reduce((n, s) => n + s.stories.length, 0),
@@ -120,15 +134,18 @@ export const lintContracts = ({
 
 export const formatLintResult = (result: LintResult, featureCount: number) => {
   const uncoveredCount = result.uncovered.reduce((n, s) => n + s.stories.length, 0)
+  const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`
+  const warnings = result.warnings.length ? `, ${plural(result.warnings.length, 'warning')}` : ''
   const lines = [
     ...result.problems.map((p) => `${p.file}:${p.line}: ${p.message}`),
-    ...(result.problems.length ? [''] : []),
+    ...result.warnings.map((w) => `${w.file}:${w.line}: warning: ${w.message}`),
+    ...(result.problems.length || result.warnings.length ? [''] : []),
     `Stories without a contract: ${uncoveredCount} of ${result.stories}`,
     ...result.uncovered.map((s) => `  ${s.title} (${s.file}): ${s.stories.join(', ')}`),
     '',
     result.problems.length
-      ? `${result.problems.length} problem${result.problems.length === 1 ? '' : 's'} in ${featureCount} contract files.`
-      : `${featureCount} contract files, ${result.scenarios} scenarios: no problems.`,
+      ? `${plural(result.problems.length, 'problem')} in ${featureCount} contract files${warnings}.`
+      : `${featureCount} contract files, ${result.scenarios} scenarios: no problems${warnings}.`,
   ]
   return `${lines.join('\n')}\n`
 }

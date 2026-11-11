@@ -120,3 +120,43 @@ describe('catalog files', () => {
     expect(catalogToMarkdown(buildCatalog({ library, generatedBy }))).toContain('## Project steps\n\nNone.\n')
   })
 })
+
+describe('discouraged steps', () => {
+  const nap: StepDefinition = {
+    keyword: 'When',
+    wording: 'I nap for {int} seconds',
+    meaning: 'Waits.',
+    example: 'I nap for 2 seconds',
+    discouraged: { reason: 'A fixed sleep hides timing bugs.', instead: 'a step that waits for what you expect' },
+    run,
+  }
+
+  test('the catalog carries the reason and what to use instead', () => {
+    const [entry] = buildCatalog({ library: [nap], generatedBy }).steps
+    expect(entry.discouraged).toEqual({
+      reason: 'A fixed sleep hides timing bugs.',
+      instead: 'a step that waits for what you expect',
+    })
+  })
+
+  test('the Markdown marks it under its meaning, with the reason and what to use instead', () => {
+    expect(catalogToMarkdown(buildCatalog({ library: [nap], generatedBy }))).toContain(
+      [
+        '### When I nap for {int} seconds',
+        '',
+        'Waits.',
+        '',
+        '**Discouraged:** A fixed sleep hides timing bugs. Use a step that waits for what you expect instead.',
+        '',
+        '- Parameters: `int`',
+      ].join('\n')
+    )
+  })
+
+  test('without an alternative, the Markdown gives the reason alone', () => {
+    const bare = { ...nap, discouraged: { reason: 'A fixed sleep hides timing bugs.' } }
+    expect(catalogToMarkdown(buildCatalog({ library: [bare], generatedBy }))).toContain(
+      'Waits.\n\n**Discouraged:** A fixed sleep hides timing bugs.\n\n- Parameters'
+    )
+  })
+})

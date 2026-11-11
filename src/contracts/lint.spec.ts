@@ -215,7 +215,9 @@ describe('lintContracts', () => {
 
 describe('formatLintResult', () => {
   test('prints each problem as file:line, then the uncovered stories and a summary', () => {
-    const result = lint(feature('    Scenario: Waits', '        When I wait for "1" seconds'))
+    const result = lint(
+      feature('    Scenario: Waits', '        Then I should assert that the element with id "badge" contains "New"')
+    )
     expect(formatLintResult(result, 1)).toBe(
       [
         `${featureFile}:3: "Waits" names no story: add a @story:<Story_Name> tag or a "story" column`,
@@ -231,5 +233,39 @@ describe('formatLintResult', () => {
 
   test('says so when there is no problem', () => {
     expect(formatLintResult(lint(VALID), 1)).toContain('1 contract files, 2 scenarios: no problems.')
+  })
+})
+
+describe('discouraged steps', () => {
+  const steps = [
+    { wording: 'I should assert that the element with id {string} contains {string}' },
+    {
+      wording: 'I nap for {int} seconds',
+      discouraged: { reason: 'A fixed sleep hides timing bugs.', instead: 'a step that waits for what you expect' },
+    },
+  ]
+  const napping = feature(
+    '    @story:Default',
+    '    Scenario: Naps',
+    '        When I nap for 2 seconds',
+    '        Then I should assert that the element with id "badge" contains "New"'
+  )
+  const WARNING =
+    'discouraged step "When I nap for 2 seconds": A fixed sleep hides timing bugs. Use a step that waits for what you expect instead.'
+
+  test('are warnings with the file, line, step and reason, not problems', () => {
+    const result = lint(napping, { steps })
+    expect(result.problems).toEqual([])
+    expect(result.warnings).toEqual([{ file: featureFile, line: 5, message: WARNING }])
+  })
+
+  test('a contract that uses none gets no warning', () => {
+    expect(lint(VALID, { steps }).warnings).toEqual([])
+  })
+
+  test('the report prints each warning as file:line and still finds no problems', () => {
+    const report = formatLintResult(lint(napping, { steps }), 1)
+    expect(report).toContain(`${featureFile}:5: warning: ${WARNING}\n`)
+    expect(report).toContain('1 contract files, 1 scenarios: no problems, 1 warning.')
   })
 })

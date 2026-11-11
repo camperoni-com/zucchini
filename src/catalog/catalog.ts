@@ -1,7 +1,7 @@
 // The step catalog: every step a contract can use, as JSON for agents and tools and as Markdown for people.
 // It is generated from the step definitions themselves, so it can't drift from the code.
 import { compileSteps } from '../steps/expressions.ts'
-import type { StepDefinition, StepKeyword } from '../steps/types.ts'
+import type { Discouraged, StepDefinition, StepKeyword } from '../steps/types.ts'
 
 export type StepSource = 'library' | 'project'
 
@@ -12,6 +12,8 @@ export interface CatalogEntry {
   meaning: string
   example: string
   source: StepSource
+  /** Only on steps to avoid. */
+  discouraged?: Discouraged
 }
 
 export interface Catalog {
@@ -46,6 +48,7 @@ export const buildCatalog = ({
         meaning: step.meaning,
         example: step.example,
         source: step.source,
+        ...(step.discouraged ? { discouraged: step.discouraged } : {}),
       }
     }),
   }
@@ -54,6 +57,10 @@ export const buildCatalog = ({
 export const catalogToJson = (catalog: Catalog) => `${JSON.stringify(catalog, null, 2)}\n`
 
 const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`
+
+/** "Reason. Use X instead.", the way the catalog and the linter put it. */
+export const discouragedText = ({ reason, instead }: Discouraged) =>
+  instead ? `${reason} Use ${instead} instead.` : reason
 
 export const catalogToMarkdown = (catalog: Catalog) => {
   const library = catalog.steps.filter((step) => step.source === 'library')
@@ -67,6 +74,7 @@ export const catalogToMarkdown = (catalog: Catalog) => {
       '',
       step.meaning,
       '',
+      ...(step.discouraged ? [`**Discouraged:** ${discouragedText(step.discouraged)}`, ''] : []),
       `- Parameters: ${step.parameters.length ? step.parameters.map((p) => `\`${p}\``).join(', ') : 'none'}`,
       `- Example: \`${step.keyword} ${step.example}\``,
       '',

@@ -155,6 +155,9 @@ export const waitSeconds: StepDefinition = {
   wording: 'I wait for {string} seconds',
   meaning: 'Pauses for the given number of seconds.',
   example: 'I wait for "2" seconds',
+  discouraged: {
+    reason: 'A fixed sleep hides timing bugs and slows every run; a step that checks the page waits for it on its own.',
+  },
   run: async (_context, seconds: string) => {
     await sleep(Number(seconds) * 1000)
   },
