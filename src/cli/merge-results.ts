@@ -1,15 +1,14 @@
 // Merges contract results files, for example one per browser from separate CI jobs, into the config's results
 // file (or --out). When a pickle ran on the same browser in more than one, the latest run counts. Files that
 // don't exist are skipped with a warning, so a job that produced none leaves its scenarios "not run yet".
-// Runs on Node's built-in TypeScript support.
 //
-//   node bin/merge-results.ts <results.json>... [--out <file>]
+//   zucchini merge-results <results.json>... [--out <file>]
 import fs from 'node:fs'
 import { parseArgs } from 'node:util'
 
-import { loadConfig } from '../src/config/load.ts'
-import { mergeResults, readResults, writeResults } from '../src/runner/results.ts'
-import type { Results } from '../src/view/viewModel.ts'
+import { loadConfig } from '../config/load.ts'
+import { mergeResults, readResults, writeResults } from '../runner/results.ts'
+import type { Results } from '../view/viewModel.ts'
 
 const { values, positionals } = parseArgs({ options: { out: { type: 'string' } }, allowPositionals: true })
 

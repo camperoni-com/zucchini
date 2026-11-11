@@ -1,16 +1,16 @@
 // Runs the component contracts: one Vitest project per browser and device (see src/runner/vitest.ts), one
 // after the other, since they all serve on the same port. Each run adds its results to the config's results
 // file, replacing that browser and device's earlier ones. Keeps going after a failure, prints how each run went
-// and how long it took, and exits 1 if any failed. Runs on Node's built-in TypeScript support.
+// and how long it took, and exits 1 if any failed.
 //
-//   node bin/contracts.ts --config <vitest config> [--browser chromium,firefox,webkit]
+//   zucchini contracts --config <vitest config> [--browser chromium,firefox,webkit]
 //     [--device desktop,mobile] [-- <more vitest arguments>]
 //
 // The browser defaults to chromium, the devices to both.
 import { spawn } from 'node:child_process'
 import { parseArgs } from 'node:util'
 
-import { type Browser, BROWSERS, type Device, DEVICES, projectName } from '../src/runner/devices.ts'
+import { type Browser, BROWSERS, type Device, DEVICES, projectName } from '../runner/devices.ts'
 
 const { values, positionals } = parseArgs({
   options: {

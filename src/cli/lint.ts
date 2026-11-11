@@ -1,18 +1,18 @@
 // Lints the contract feature files against the step catalog and the stories beside them. Prints every problem
-// as file:line, lists the stories without a contract, and exits 1 on any problem. Runs on Node's built-in
-// TypeScript support. Settings come from the project config (zucchini.config.ts or .mts in the working
+// as file:line, lists the stories without a contract, and exits 1 on any problem.
+// Settings come from the project config (zucchini.config.ts or .mts in the working
 // directory); flags override them: --catalog names the steps.json to check against, --root the folder of
 // contracts.
 //
-//   node bin/lint.ts [--catalog <steps.json>] [--root <dir>]
+//   zucchini lint [--catalog <steps.json>] [--root <dir>]
 import fs from 'node:fs'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 
-import type { Catalog } from '../src/catalog/catalog.ts'
-import { loadConfig } from '../src/config/load.ts'
-import { formatLintResult, lintContracts } from '../src/contracts/lint.ts'
-import { findContracts } from '../src/contracts/load.ts'
+import type { Catalog } from '../catalog/catalog.ts'
+import { loadConfig } from '../config/load.ts'
+import { formatLintResult, lintContracts } from '../contracts/lint.ts'
+import { findContracts } from '../contracts/load.ts'
 
 const { values } = parseArgs({
   options: {

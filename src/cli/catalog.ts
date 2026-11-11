@@ -1,9 +1,9 @@
 // Writes the step catalog (steps.json and steps.md) into the config's catalog folder, or with --check fails
-// when the committed files differ from what the step definitions produce. Runs on Node's built-in TypeScript
-// support. Settings come from the project config (zucchini.config.ts or .mts in the working directory);
+// when the committed files differ from what the step definitions produce.
+// Settings come from the project config (zucchini.config.ts or .mts in the working directory);
 // flags override them.
 //
-//   node bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
+//   zucchini catalog [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
 //
 // A project-steps module exports `projectSteps`, an array of step definitions.
 import fs from 'node:fs'
@@ -11,16 +11,16 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { buildCatalog, catalogToJson, catalogToMarkdown } from '../src/catalog/catalog.ts'
-import { loadConfig } from '../src/config/load.ts'
-import { librarySteps } from '../src/steps/library.ts'
-import type { StepDefinition } from '../src/steps/types.ts'
+import { buildCatalog, catalogToJson, catalogToMarkdown } from '../catalog/catalog.ts'
+import { loadConfig } from '../config/load.ts'
+import { librarySteps } from '../steps/library.ts'
+import type { StepDefinition } from '../steps/types.ts'
 
 const { values } = parseArgs({
   options: {
     out: { type: 'string' },
     'project-steps': { type: 'string' },
-    command: { type: 'string', default: 'node bin/catalog.ts' },
+    command: { type: 'string', default: 'zucchini catalog' },
     check: { type: 'boolean', default: false },
   },
 })

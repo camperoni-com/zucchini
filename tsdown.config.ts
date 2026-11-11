@@ -12,6 +12,7 @@ export default defineConfig({
     'runner/preview': 'src/runner/preview.ts',
     'runner/setup': 'src/runner/setup.ts',
     'runner/support': 'src/runner/support.ts',
+    cli: 'src/cli/zucchini.ts',
   },
   format: 'esm',
   platform: 'neutral',

@@ -5,16 +5,16 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
-import { buildCatalog, catalogToJson } from '../src/catalog/catalog.ts'
-import { librarySteps } from '../src/steps/library.ts'
+import { buildCatalog, catalogToJson } from '../catalog/catalog.ts'
+import { librarySteps } from '../steps/library.ts'
 
-const script = path.join(__dirname, 'lint.ts')
-const fixtureStories = path.join(__dirname, '..', 'src', 'contracts', 'fixtures', 'Badge', 'Badge.stories.ts')
+const cli = path.join(__dirname, 'zucchini.ts')
+const fixtureStories = path.join(__dirname, '..', 'contracts', 'fixtures', 'Badge', 'Badge.stories.ts')
 
 let root: string
 
 const lint = () => {
-  const args = [script, '--catalog', path.join(root, 'steps.json'), '--root', path.join(root, 'src')]
+  const args = [cli, 'lint', '--catalog', path.join(root, 'steps.json'), '--root', path.join(root, 'src')]
   try {
     // The flags name everything, and the temporary folder has no config.
     return { code: 0, output: execFileSync('node', args, { cwd: root, stdio: 'pipe' }).toString() }

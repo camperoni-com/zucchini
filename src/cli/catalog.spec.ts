@@ -5,8 +5,8 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
-const script = path.join(__dirname, 'catalog.ts')
-const fixtureSteps = path.join(__dirname, 'fixtures', 'project', 'steps', 'projectSteps.ts')
+const cli = path.join(__dirname, 'zucchini.ts')
+const fixtureSteps = path.join(__dirname, '..', '..', 'test', 'fixtures', 'project', 'steps', 'projectSteps.ts')
 
 // A project with no config, so the catalog goes to the default folder.
 let project: string
@@ -16,7 +16,7 @@ const catalog = (...args: string[]) => {
   try {
     return {
       code: 0,
-      output: execFileSync('node', [script, '--command', 'npm run cat', ...args], {
+      output: execFileSync('node', [cli, 'catalog', '--command', 'npm run cat', ...args], {
         cwd: project,
         stdio: 'pipe',
       }).toString(),

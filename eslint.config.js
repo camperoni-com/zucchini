@@ -23,7 +23,7 @@ export default tseslint.config(
   },
   {
     // The commands print their reports to the terminal.
-    files: ['bin/**/*.ts'],
+    files: ['src/cli/**/*.ts'],
     rules: { 'no-console': 'off' },
   },
   prettierRecommended

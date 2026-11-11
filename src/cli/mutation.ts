@@ -3,9 +3,8 @@
 // break's contracts failed somewhere. Every break is reverted after
 // its run, even when the run fails or is interrupted (Ctrl-C), and the results file is put back as it was.
 // Exits 1, naming them, when a break stayed green, didn't run, couldn't be applied, or a run failed elsewhere.
-// Runs on Node's built-in TypeScript support.
 //
-//   node bin/mutation.ts --config <vitest config> --breaks <module exporting `breaks`>
+//   zucchini mutation --config <vitest config> --breaks <module exporting `breaks`>
 //     [--browser chromium,firefox,webkit] [--device desktop,mobile] [--break <name>]...
 //
 // The browser defaults to chromium, the device to desktop: one cheap run per break.
@@ -15,11 +14,11 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { loadConfig } from '../src/config/load.ts'
-import { storyFileFor } from '../src/contracts/lint.ts'
-import { findContracts } from '../src/contracts/load.ts'
-import { applyBreak, type Break, contractsOf, isFailure, judge, type Verdict } from '../src/mutation/mutation.ts'
-import { readResults } from '../src/runner/results.ts'
+import { loadConfig } from '../config/load.ts'
+import { storyFileFor } from '../contracts/lint.ts'
+import { findContracts } from '../contracts/load.ts'
+import { applyBreak, type Break, contractsOf, isFailure, judge, type Verdict } from '../mutation/mutation.ts'
+import { readResults } from '../runner/results.ts'
 
 const { values } = parseArgs({
   options: {
@@ -31,7 +30,9 @@ const { values } = parseArgs({
   },
 })
 if (!values.config || !values.breaks) {
-  process.stderr.write('Usage: mutation.ts --config <vitest config> --breaks <module> [--browser ...] [--device ...]\n')
+  process.stderr.write(
+    'Usage: zucchini mutation --config <vitest config> --breaks <module> [--browser ...] [--device ...]\n'
+  )
   process.exit(2)
 }
 
@@ -56,11 +57,14 @@ process.on('SIGINT', () => {
   interrupted = true
 })
 
+// Runs `zucchini contracts` with the same Node and the same zucchini (set by the dispatcher).
+const cli = process.env.ZUCCHINI_CLI
+if (!cli) {
+  throw new Error('Run the mutation check as `zucchini mutation`.')
+}
 const runContracts = (args: string[]) =>
   new Promise<void>((resolve) => {
-    spawn('node', [path.join(import.meta.dirname, 'contracts.ts'), ...args], { stdio: 'inherit' }).on('close', () =>
-      resolve()
-    )
+    spawn(process.execPath, [cli, 'contracts', ...args], { stdio: 'inherit' }).on('close', () => resolve())
   })
 
 const outcomes: { brk: Break; verdict?: Verdict; skipped?: string; error?: string }[] = []

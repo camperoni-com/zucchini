@@ -33,13 +33,13 @@ export default defineConfig({
 })
 ```
 
-| Setting           | Default                      | Read by                          | Overridden by                                        |
-| ----------------- | ---------------------------- | -------------------------------- | ---------------------------------------------------- |
-| `contracts`       | `src`                        | linter, Storybook plugin, runner | `lint.ts --root`, plugin option `dir`                |
-| `catalog`         | `docs/zucchini`              | catalog command, linter          | `catalog.ts --out`, `lint.ts --catalog <steps.json>` |
-| `projectSteps`    | none                         | catalog command, runner          | `catalog.ts --project-steps`                         |
-| `results`         | `test-results/zucchini.json` | Storybook plugin, runner         | plugin option `results`                              |
-| `testIdAttribute` | `data-testid`                | runner                           |                                                      |
+| Setting           | Default                      | Read by                          | Overridden by                                                    |
+| ----------------- | ---------------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| `contracts`       | `src`                        | linter, Storybook plugin, runner | `zucchini lint --root`, plugin option `dir`                      |
+| `catalog`         | `docs/zucchini`              | catalog command, linter          | `zucchini catalog --out`, `zucchini lint --catalog <steps.json>` |
+| `projectSteps`    | none                         | catalog command, runner          | `zucchini catalog --project-steps`                               |
+| `results`         | `test-results/zucchini.json` | Storybook plugin, runner         | plugin option `results`                                          |
+| `testIdAttribute` | `data-testid`                | runner                           |                                                                  |
 
 An unknown setting, or one that isn't a string, is an error.
 
@@ -68,7 +68,7 @@ export const projectSteps: StepDefinition[] = [
 Name that module in the config's `projectSteps` and regenerate the catalog: the steps appear in it marked as
 project steps, and the linter, which checks contracts against the catalog, accepts them. The runner registers
 them next to the library's (see [Registering the steps](#registering-the-steps)).
-`bin/fixtures/project/` is a small project set up this way.
+`test/fixtures/project/` is a small project set up this way.
 
 Camperoni's config is `zucchini.config.mts` at the repo root. It has no project steps yet, so it leaves
 `projectSteps` out, with a comment saying how to add them.
@@ -136,12 +136,12 @@ for the runner in use. The test-id attribute defaults to `data-testid`.
 
 ## Step catalog
 
-`bin/catalog.ts` writes every available step (keyword, wording, parameter types, meaning, example, and
+`zucchini catalog` writes every available step (keyword, wording, parameter types, meaning, example, and
 whether it comes from the library or the project) as `steps.json` and a readable `steps.md` in the config's
 `catalog` folder. It runs on Node's built-in TypeScript support, without a browser:
 
 ```sh
-node bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
+zucchini catalog [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
 ```
 
 `--out` and `--project-steps` override the config's `catalog` and `projectSteps`. `--check` writes nothing
@@ -153,7 +153,7 @@ and CI runs `npm run zucchini:catalog:check`.
 
 ## Contract linter
 
-`bin/lint.ts` parses every `*.feature` in the config's `contracts` folder with the official Gherkin parser,
+`zucchini lint` parses every `*.feature` in the config's `contracts` folder with the official Gherkin parser,
 checks it against the catalog in the config's `catalog` folder, and reports, as
 `file:line: message`:
 
@@ -171,7 +171,7 @@ catalog file and the command that regenerates it (the catalog's `generatedBy`): 
 a step definition, run it.
 
 ```sh
-node bin/lint.ts [--catalog <steps.json>] [--root <dir>]
+zucchini lint [--catalog <steps.json>] [--root <dir>]
 ```
 
 `--catalog` names the catalog file to check against and `--root` the folder of contracts, overriding the
@@ -227,22 +227,22 @@ bundle the runner. `zucchiniProjects()` takes the browsers, devices, port, extra
 passes its time zone) and the per-story timeout (300 s by default; Storybook's own 15 s is too short for a story
 with 11 scenarios).
 
-Run it with `bin/contracts.ts`, which runs the projects one after the other (they all serve on the same port),
+Run it with `zucchini contracts`, which runs the projects one after the other (they all serve on the same port),
 keeps going after a failure (Ctrl-C stops it), prints each run's result and time, and exits 1 if any failed.
 Arguments after the options go to Vitest, e.g. a story file to run only that one:
 
 ```sh
-node bin/contracts.ts --config vitest.zucchini.config.mts [--browser chromium,firefox,webkit] [--device desktop,mobile]
+zucchini contracts --config vitest.zucchini.config.mts [--browser chromium,firefox,webkit] [--device desktop,mobile]
 ```
 
 The browser defaults to `chromium`, the devices to both. In Camperoni: `npm run zucchini:contracts`, with
 `-- --browser webkit` to pick others. Each browser needs `npx playwright install <browser>`.
 
-`bin/merge-results.ts` merges results files, such as one per browser from separate CI jobs, into the config's
+`zucchini merge-results` merges results files, such as one per browser from separate CI jobs, into the config's
 results file (or `--out`); the latest run of a pickle on a browser wins:
 
 ```sh
-node bin/merge-results.ts <results.json>... [--out <file>]
+zucchini merge-results <results.json>... [--out <file>]
 ```
 
 In Camperoni's CI, `.github/workflows/contracts.yml` runs `npm run zucchini:contracts -- --browser <browser>`
@@ -274,7 +274,7 @@ to a wrong one, runs the contracts of that story file, and checks that the broke
 failed.
 
 ```sh
-node bin/mutation.ts --config <vitest config> --breaks <module> \
+zucchini mutation --config <vitest config> --breaks <module> \
   [--browser chromium,firefox,webkit] [--device desktop,mobile] [--break <name>]...
 ```
 

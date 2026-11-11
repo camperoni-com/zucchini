@@ -141,3 +141,68 @@ describe('the published package', () => {
     expect(() => run('npx', ['tsc', '-p', '.'], project)).not.toThrow()
   })
 })
+
+describe('the zucchini command, installed', () => {
+  // The repo's fixture project, with its type imports pointing at the package instead of the repo's sources.
+  beforeAll(() => {
+    const fixture = path.join(repo, 'test', 'fixtures', 'project')
+    for (const entry of ['zucchini.config.ts', 'contracts', 'steps']) {
+      fs.cpSync(path.join(fixture, entry), path.join(project, entry), { recursive: true })
+    }
+    for (const file of ['zucchini.config.ts', path.join('steps', 'projectSteps.ts')]) {
+      const target = path.join(project, file)
+      fs.writeFileSync(
+        target,
+        fs.readFileSync(target, 'utf8').replace(/from '(\.\.\/)+src\/[^']*'/g, "from '@camperoni/zucchini'")
+      )
+    }
+  })
+
+  const zucchini = (...args: string[]) => {
+    try {
+      const output = execFileSync('npx', ['--no-install', 'zucchini', ...args], { cwd: project, stdio: 'pipe' })
+      return { code: 0, output: output.toString() }
+    } catch (error) {
+      const failed = error as { status: number; stdout: Buffer; stderr: Buffer }
+      return { code: failed.status, output: failed.stdout.toString() + failed.stderr.toString() }
+    }
+  }
+
+  test('without a command, prints the usage and fails', () => {
+    const result = zucchini()
+    expect(result.code).not.toBe(0)
+    expect(result.output).toContain('Usage: zucchini <command>')
+  })
+
+  test('catalog writes the catalog with the project step, and --check finds it up to date', () => {
+    expect(zucchini('catalog')).toEqual({
+      code: 0,
+      output: 'Wrote catalog/steps.json and catalog/steps.md (11 steps).\n',
+    })
+    expect(zucchini('catalog', '--check')).toEqual({ code: 0, output: 'The step catalog is up to date (11 steps).\n' })
+  })
+
+  test('lint passes on the project contracts', () => {
+    zucchini('catalog')
+    const result = zucchini('lint')
+    expect(result.code, result.output).toBe(0)
+  })
+
+  test('merge-results skips a missing file and leaves the results as they were', () => {
+    const result = zucchini('merge-results', 'missing.json')
+    expect(result.code).toBe(0)
+    expect(result.output).toContain('No results to merge')
+  })
+
+  test('contracts asks for the Vitest config that defines the contract projects', () => {
+    const result = zucchini('contracts')
+    expect(result.code).toBe(2)
+    expect(result.output).toContain('--config <file>')
+  })
+
+  test('mutation prints its usage without a config and breaks', () => {
+    const result = zucchini('mutation')
+    expect(result.code).toBe(2)
+    expect(result.output).toContain('Usage: zucchini mutation')
+  })
+})
