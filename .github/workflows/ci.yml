@@ -77,3 +77,26 @@ jobs:
           name: demo-results-${{ matrix.browser }}
           path: examples/demo/test-results/zucchini.json
           if-no-files-found: ignore
+
+  mutation:
+    name: Demo mutation check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            examples/demo/package-lock.json
+      - run: npm ci
+        working-directory: .
+      - run: npm run demo:install
+        working-directory: .
+      - run: npx playwright install --with-deps chromium
+      # Every deliberate break in zucchini.breaks.ts, on Chromium desktop and mobile. A missed break fails.
+      - run: npm run mutation

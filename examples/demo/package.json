@@ -9,6 +9,7 @@
     "catalog:check": "zucchini catalog --command 'npm run catalog' --check",
     "contracts": "zucchini contracts --config vitest.zucchini.config.ts",
     "lint": "zucchini lint",
+    "mutation": "zucchini mutation --config vitest.zucchini.config.ts --breaks zucchini.breaks.ts --device desktop,mobile",
     "storybook": "storybook dev -p 6006",
     "typecheck": "tsc -p ."
   },

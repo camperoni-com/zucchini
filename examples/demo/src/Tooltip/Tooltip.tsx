@@ -21,8 +21,7 @@ export const Tooltip = ({ text, children }: TooltipProps) => {
         aria-describedby={open ? tipId : undefined}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        // A tap opens it: a touch screen has no hover. (A tap also moves the pointer here, so toggling would
-        // close it again at once.)
+        // A tap opens it: a touch screen has no hover.
         onClick={() => setOpen(true)}
       >
         {children}
