@@ -1,0 +1,20 @@
+.use-my-location {
+  font:
+    1rem/1.5 system-ui,
+    sans-serif;
+}
+
+.use-my-location button {
+  padding: 0.5em 0.9em;
+  border: 0;
+  border-radius: 8px;
+  background: #1f6f43;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.use-my-location [role='alert'] {
+  color: #8a1c1c;
+}

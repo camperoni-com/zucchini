@@ -1,0 +1,30 @@
+.disclosure {
+  max-width: 28rem;
+  font:
+    1rem/1.5 system-ui,
+    sans-serif;
+}
+
+.disclosure button {
+  width: 100%;
+  padding: 0.6em 0.9em;
+  border: 1px solid #c9ced6;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.disclosure button[aria-expanded='true'] {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.disclosure [data-testid='disclosure-panel'] {
+  padding: 0.6em 0.9em;
+  border: 1px solid #c9ced6;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+}
