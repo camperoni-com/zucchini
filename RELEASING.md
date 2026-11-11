@@ -19,6 +19,10 @@ and workflow that built it.
 3. Merging it publishes the new version to npm, tags it `v<version>` and creates the GitHub release with the
    version's changelog section.
 
+4. Check the release: the version's page on npmjs.com shows its provenance (built by GitHub Actions from this
+   repository's `release.yml`), and the `v<version>` tag and GitHub release exist. If provenance is missing,
+   check the trusted publisher settings below before the next release.
+
 The Release workflow runs on every push to `main` and does nothing when npm already has the version in
 `package.json`. (A workflow can't open the "Version packages" pull request itself here: the organization doesn't
 let workflows create pull requests.)
