@@ -100,3 +100,60 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # Every deliberate break in zucchini.breaks.ts, on Chromium desktop and mobile. A missed break fails.
       - run: npm run mutation
+
+  site:
+    name: Demo site
+    # Built from whatever the contract runs recorded, failures included: showing them is the living spec's job.
+    needs: demo
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            examples/demo/package-lock.json
+      - run: npm ci
+        working-directory: .
+      - run: npm run demo:install
+        working-directory: .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: demo-results-*
+          path: examples/demo/ci-results
+      # One results file for the three browsers, which the living spec reads at build time.
+      - run: npx zucchini merge-results ci-results/*/zucchini.json
+      - run: npm run build-storybook
+      - uses: actions/upload-artifact@v4
+        with:
+          name: demo-site
+          path: examples/demo/storybook-static
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: examples/demo/storybook-static
+
+  pages:
+    name: Deploy the demo to GitHub Pages
+    needs: site
+    # Off until the repo is public: on GitHub's Team plan a private repo's Pages site is public. Going public
+    # sets the DEMO_PAGES repository variable to true.
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEMO_PAGES == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

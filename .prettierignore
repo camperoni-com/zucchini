@@ -3,3 +3,4 @@ examples/demo/docs/zucchini/
 # The demo's build and run output.
 examples/demo/storybook-static/
 examples/demo/test-results/
+examples/demo/ci-results/
