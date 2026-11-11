@@ -5,15 +5,4 @@ import { defineConfig, mergeConfig } from 'vitest/config'
 
 import viteConfig from './vite.config.ts'
 
-export default mergeConfig(
-  viteConfig,
-  defineConfig({
-    test: {
-      projects: await zucchiniProjects({
-        // Any free port. It's fixed (5173 by default) because an API key restricted by referrer accepts only
-        // known ones; this one stays clear of a Vite app's dev server.
-        port: 5199,
-      }),
-    },
-  })
-)
+export default mergeConfig(viteConfig, defineConfig({ test: { projects: await zucchiniProjects() } }))

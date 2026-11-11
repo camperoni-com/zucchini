@@ -111,7 +111,10 @@ export interface ZucchiniProjectsOptions {
   configDir?: string
   browsers?: readonly Browser[]
   devices?: readonly Device[]
-  /** The port the browser tests are served on. Default 5173. */
+  /**
+   * The port the browser tests are served on, and only that one (a referrer-restricted API key accepts only
+   * known ports). Default 63315, Vitest's own browser port, clear of a Vite dev server on 5173.
+   */
   port?: number
   /** Added to every browser context, e.g. `{ timezoneId }`. */
   contextOptions?: BrowserContextOptions
@@ -125,7 +128,7 @@ export const zucchiniProjects = async ({
   configDir = '.storybook',
   browsers = BROWSERS,
   devices = DEVICES,
-  port = 5173,
+  port = 63315,
   contextOptions = {},
   // Storybook's 15 s default is too short: the busiest story runs 11 scenarios, some with fixed waits.
   testTimeout = 300_000,
