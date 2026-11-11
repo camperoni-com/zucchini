@@ -10,7 +10,7 @@
   },
   "type": "module",
   "bin": {
-    "zucchini": "./dist/cli.js"
+    "zucchini": "dist/cli.js"
   },
   "scripts": {
     "build": "tsdown",

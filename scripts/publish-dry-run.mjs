@@ -33,6 +33,12 @@ const first = npm(['run', 'release:first', '--', '--dry-run'], repo)
 expectIn(first, 'with tag latest and public access (dry-run)', 'first publish')
 expectIn(first, `+ ${name}@${version}`, 'first publish')
 expectIn(first, 'dist/cli.js', 'first publish')
+// npm "corrects" a manifest it dislikes while publishing, warning that it removed what it couldn't use. 0.1.0's
+// bin path started with "./", and npm warned that it removed the `zucchini` bin. That time the published
+// package kept it, but a publish shouldn't depend on it, and npm pack doesn't show these warnings at all.
+if (first.includes('auto-corrected')) {
+  throw new Error(`first publish: npm would change package.json while publishing:\n${first}`)
+}
 process.stdout.write(`First publish: ${name}@${version}, public, tag latest, with dist/ (dry run).\n`)
 
 // 2. A prerelease, from the packed tarball with a prerelease version.
