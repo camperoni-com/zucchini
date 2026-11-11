@@ -45,7 +45,7 @@ describe('the results file', () => {
 
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'results-'))
-    file = path.join(dir, 'nested', 'living-spec.json')
+    file = path.join(dir, 'nested', 'zucchini.json')
   })
 
   afterEach(() => {

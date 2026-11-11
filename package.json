@@ -1,8 +1,8 @@
 {
-  "name": "living-spec",
+  "name": "@camperoni/zucchini",
   "version": "0.0.0",
   "private": true,
-  "description": "Imperative Gherkin steps and a living spec for Storybook component contracts (working name, incubated in the Camperoni frontend).",
+  "description": "Cucumber's opinionated cousin: generic, imperative Gherkin steps as component contracts for Storybook, rendered into a living spec.",
   "license": "MIT",
   "author": "Vasilis Georgitzikis <tzikis@gmail.com>",
   "repository": {

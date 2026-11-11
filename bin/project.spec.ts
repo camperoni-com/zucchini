@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { buildCatalog, catalogToJson } from '../src/catalog/catalog.ts'
 import { librarySteps } from '../src/steps/library.ts'
 
-// A project whose config (bin/fixtures/project/living-spec.config.ts) puts its contracts in contracts/, its
+// A project whose config (bin/fixtures/project/zucchini.config.ts) puts its contracts in contracts/, its
 // catalog in catalog/, and declares a project step that its contract uses.
 const fixture = path.join(__dirname, 'fixtures', 'project')
 const FEATURE = path.join('contracts', 'Badge', 'Badge.feature')

@@ -8,8 +8,8 @@ import { createGeolocationFake } from './geolocation.ts'
 
 declare module 'vitest/browser' {
   interface BrowserCommands {
-    livingSpecRecord: (result: ScenarioResult) => Promise<void>
-    livingSpecResetPointer: () => Promise<void>
+    zucchiniRecord: (result: ScenarioResult) => Promise<void>
+    zucchiniResetPointer: () => Promise<void>
   }
 }
 

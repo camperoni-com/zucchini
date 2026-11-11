@@ -3,12 +3,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { DEFAULT_CONFIG, type LivingSpecConfig, type ResolvedConfig } from './config.ts'
+import { DEFAULT_CONFIG, type ResolvedConfig, type ZucchiniConfig } from './config.ts'
 
 /** Looked up in this order at the project root. `.mts` suits a project whose package.json isn't `"type": "module"`. */
-export const CONFIG_FILES = ['living-spec.config.ts', 'living-spec.config.mts']
+export const CONFIG_FILES = ['zucchini.config.ts', 'zucchini.config.mts']
 
-const SETTINGS: readonly (keyof LivingSpecConfig)[] = [
+const SETTINGS: readonly (keyof ZucchiniConfig)[] = [
   'contracts',
   'catalog',
   'projectSteps',
@@ -29,7 +29,7 @@ export const loadConfig = async (root = process.cwd()): Promise<{ file?: string;
   }
   const config: ResolvedConfig = { ...DEFAULT_CONFIG }
   for (const [key, value] of Object.entries(exported)) {
-    if (!SETTINGS.includes(key as keyof LivingSpecConfig)) {
+    if (!SETTINGS.includes(key as keyof ZucchiniConfig)) {
       throw new Error(`${file}: unknown setting "${key}". The settings are ${SETTINGS.join(', ')}.`)
     }
     if (value === undefined) {
@@ -38,7 +38,7 @@ export const loadConfig = async (root = process.cwd()): Promise<{ file?: string;
     if (typeof value !== 'string') {
       throw new Error(`${file}: "${key}" must be a string`)
     }
-    config[key as keyof LivingSpecConfig] = value
+    config[key as keyof ZucchiniConfig] = value
   }
   return { file, config }
 }

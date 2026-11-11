@@ -31,7 +31,7 @@ const readJson = () => JSON.parse(fs.readFileSync(path.join(out, 'steps.json'), 
 
 beforeEach(() => {
   project = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-'))
-  out = path.join(project, 'docs', 'living-spec')
+  out = path.join(project, 'docs', 'zucchini')
 })
 
 afterEach(() => {
@@ -73,7 +73,7 @@ describe('the catalog command', { timeout: 30000 }, () => {
     fs.writeFileSync(path.join(out, 'steps.md'), 'edited by hand\n')
     const result = catalog('--project-steps', fixtureSteps, '--check')
     expect(result.code).toBe(1)
-    expect(result.output).toContain(`The step catalog is out of date: ${path.join('docs', 'living-spec', 'steps.md')}.`)
+    expect(result.output).toContain(`The step catalog is out of date: ${path.join('docs', 'zucchini', 'steps.md')}.`)
     expect(result.output).toContain('Run `npm run cat` and commit the result.')
   })
 

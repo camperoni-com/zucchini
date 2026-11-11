@@ -24,39 +24,39 @@ describe('loadConfig', () => {
     expect(await loadConfig(root)).toEqual({
       config: {
         contracts: 'src',
-        catalog: 'docs/living-spec',
-        results: 'test-results/living-spec.json',
+        catalog: 'docs/zucchini',
+        results: 'test-results/zucchini.json',
         testIdAttribute: 'data-testid',
       },
     })
   })
 
-  test('reads living-spec.config.mts and fills in the defaults', async () => {
-    writeConfig('living-spec.config.mts', "export default { contracts: 'app', projectSteps: 'steps.ts' }\n")
+  test('reads zucchini.config.mts and fills in the defaults', async () => {
+    writeConfig('zucchini.config.mts', "export default { contracts: 'app', projectSteps: 'steps.ts' }\n")
     expect(await loadConfig(root)).toEqual({
-      file: path.join(root, 'living-spec.config.mts'),
+      file: path.join(root, 'zucchini.config.mts'),
       config: { ...DEFAULT_CONFIG, contracts: 'app', projectSteps: 'steps.ts' },
     })
   })
 
-  test('prefers living-spec.config.ts', async () => {
-    writeConfig('living-spec.config.ts', "export default { results: 'ts.json' }\n")
-    writeConfig('living-spec.config.mts', "export default { results: 'mts.json' }\n")
+  test('prefers zucchini.config.ts', async () => {
+    writeConfig('zucchini.config.ts', "export default { results: 'ts.json' }\n")
+    writeConfig('zucchini.config.mts', "export default { results: 'mts.json' }\n")
     expect((await loadConfig(root)).config.results).toBe('ts.json')
   })
 
   test('rejects a config without a default export', async () => {
-    writeConfig('living-spec.config.mts', "export const contracts = 'app'\n")
+    writeConfig('zucchini.config.mts', "export const contracts = 'app'\n")
     await expect(loadConfig(root)).rejects.toThrow('must export its settings as default')
   })
 
   test('rejects an unknown setting', async () => {
-    writeConfig('living-spec.config.mts', "export default { contract: 'app' }\n")
+    writeConfig('zucchini.config.mts', "export default { contract: 'app' }\n")
     await expect(loadConfig(root)).rejects.toThrow('unknown setting "contract"')
   })
 
   test('rejects a setting that is not a string', async () => {
-    writeConfig('living-spec.config.mts', 'export default { results: 3 }\n')
+    writeConfig('zucchini.config.mts', 'export default { results: 3 }\n')
     await expect(loadConfig(root)).rejects.toThrow('"results" must be a string')
   })
 })

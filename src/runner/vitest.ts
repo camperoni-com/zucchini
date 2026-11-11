@@ -3,11 +3,11 @@
 // runs the scenarios bound to each story through @lotun/vitest-cucumber. Everything runner-specific lives in
 // this folder; the steps only see the Driver.
 //
-//   // vitest.living-spec.config.mts
-//   export default defineConfig({ test: { projects: await livingSpecProjects() } })
+//   // vitest.zucchini.config.mts
+//   export default defineConfig({ test: { projects: await zucchiniProjects() } })
 //
-// Then `vitest run --config vitest.living-spec.config.mts --project contracts-chromium-desktop`, one project
-// at a time (they all serve on the same port), or `node packages/living-spec/bin/contracts.ts`, which does that.
+// Then `vitest run --config vitest.zucchini.config.mts --project contracts-chromium-desktop`, one project
+// at a time (they all serve on the same port), or `node bin/contracts.ts`, which does that.
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -34,7 +34,7 @@ import {
 import { dropBrowser } from './results.ts'
 import type { RunnerSettings } from './runtime.ts'
 
-export const RUNNER_MODULE_ID = 'virtual:living-spec/runner'
+export const RUNNER_MODULE_ID = 'virtual:zucchini/runner'
 const RESOLVED_ID = `\0${RUNNER_MODULE_ID}`
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -75,7 +75,7 @@ const runnerPlugin = ({
   resultsFile: string
   storyFiles: string[]
 }): Plugin => ({
-  name: 'living-spec:runner',
+  name: 'zucchini:runner',
   config: () => ({
     optimizeDeps: {
       // Vite's pre-bundler can't follow the runner plugin's virtual module from its browser entry.
@@ -102,8 +102,8 @@ const runnerPlugin = ({
       : undefined,
 })
 
-export interface LivingSpecProjectsOptions {
-  /** The project root, where the living-spec config lives. Default: the working directory. */
+export interface ZucchiniProjectsOptions {
+  /** The project root, where the Zucchini config lives. Default: the working directory. */
   root?: string
   /** Storybook's config folder, relative to `root`. Default `.storybook`. */
   configDir?: string
@@ -118,7 +118,7 @@ export interface LivingSpecProjectsOptions {
 }
 
 /** One Vitest browser project per browser and device, named `contracts-<browser>-<device>`. */
-export const livingSpecProjects = async ({
+export const zucchiniProjects = async ({
   root = process.cwd(),
   configDir = '.storybook',
   browsers = BROWSERS,
@@ -127,7 +127,7 @@ export const livingSpecProjects = async ({
   contextOptions = {},
   // Storybook's 15 s default is too short: the busiest story runs 11 scenarios, some with fixed waits.
   testTimeout = 300_000,
-}: LivingSpecProjectsOptions = {}): Promise<TestProjectInlineConfiguration[]> => {
+}: ZucchiniProjectsOptions = {}): Promise<TestProjectInlineConfiguration[]> => {
   const { config } = await loadConfig(root)
   const resultsFile = path.resolve(root, config.results)
   const projectStepsFile = config.projectSteps ? path.resolve(root, config.projectSteps) : undefined

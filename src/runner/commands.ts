@@ -15,16 +15,16 @@ const playwrightOnly = (name: string, provider: string) => {
 }
 
 export const createCommands = ({ resultsFile }: { resultsFile: string }) => {
-  const livingSpecRecord: BrowserCommand<[ScenarioResult]> = async (_ctx, result) => {
+  const zucchiniRecord: BrowserCommand<[ScenarioResult]> = async (_ctx, result) => {
     appendResult(resultsFile, result)
   }
 
   // Several scenarios share one page, so the real mouse stays where the last one left it, and a story mounted
   // under it gets hovered (a tooltip opens by itself). Park it in the outer page's corner before each scenario.
-  const livingSpecResetPointer: BrowserCommand<[]> = async (ctx) => {
-    playwrightOnly('livingSpecResetPointer', ctx.provider.name)
+  const zucchiniResetPointer: BrowserCommand<[]> = async (ctx) => {
+    playwrightOnly('zucchiniResetPointer', ctx.provider.name)
     await ctx.page.mouse.move(0, 0)
   }
 
-  return { livingSpecRecord, livingSpecResetPointer }
+  return { zucchiniRecord, zucchiniResetPointer }
 }

@@ -1,6 +1,6 @@
 export type { Catalog, CatalogEntry, StepSource } from './catalog/catalog.ts'
 export { buildCatalog, catalogToJson, catalogToMarkdown } from './catalog/catalog.ts'
-export type { LivingSpecConfig, ResolvedConfig } from './config/config.ts'
+export type { ZucchiniConfig, ResolvedConfig } from './config/config.ts'
 export { DEFAULT_CONFIG, defineConfig } from './config/config.ts'
 export type { PickleContent } from './view/pickleHash.ts'
 export { PICKLE_HASH_LENGTH, pickleHash } from './view/pickleHash.ts'

@@ -76,11 +76,11 @@ describe('lintContracts', () => {
       ],
       storyFiles: [badge],
       steps: librarySteps,
-      catalog: { file: 'docs/living-spec/steps.json', command: 'npm run living-spec:catalog' },
+      catalog: { file: 'docs/zucchini/steps.json', command: 'npm run zucchini:catalog' },
     })
     expect(result.problems.map((p) => p.message)).toEqual([
-      'unknown step "When I nap": no step in docs/living-spec/steps.json matches it. ' +
-        'If you just added or changed a step definition, run `npm run living-spec:catalog`.',
+      'unknown step "When I nap": no step in docs/zucchini/steps.json matches it. ' +
+        'If you just added or changed a step definition, run `npm run zucchini:catalog`.',
     ])
   })
 

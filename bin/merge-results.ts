@@ -3,7 +3,7 @@
 // don't exist are skipped with a warning, so a job that produced none leaves its scenarios "not run yet".
 // Runs on Node's built-in TypeScript support.
 //
-//   node packages/living-spec/bin/merge-results.ts <results.json>... [--out <file>]
+//   node bin/merge-results.ts <results.json>... [--out <file>]
 import fs from 'node:fs'
 import { parseArgs } from 'node:util'
 

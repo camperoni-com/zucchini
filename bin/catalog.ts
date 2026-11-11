@@ -1,9 +1,9 @@
 // Writes the step catalog (steps.json and steps.md) into the config's catalog folder, or with --check fails
 // when the committed files differ from what the step definitions produce. Runs on Node's built-in TypeScript
-// support. Settings come from the project config (living-spec.config.ts or .mts in the working directory);
+// support. Settings come from the project config (zucchini.config.ts or .mts in the working directory);
 // flags override them.
 //
-//   node packages/living-spec/bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
+//   node bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
 //
 // A project-steps module exports `projectSteps`, an array of step definitions.
 import fs from 'node:fs'
@@ -20,7 +20,7 @@ const { values } = parseArgs({
   options: {
     out: { type: 'string' },
     'project-steps': { type: 'string' },
-    command: { type: 'string', default: 'node packages/living-spec/bin/catalog.ts' },
+    command: { type: 'string', default: 'node bin/catalog.ts' },
     check: { type: 'boolean', default: false },
   },
 })

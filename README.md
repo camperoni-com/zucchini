@@ -1,4 +1,4 @@
-# living-spec (working name)
+# Zucchini
 
 Behavioral contracts for Storybook components, written in Gherkin, with a library of generic,
 test-id-based steps and a readable spec view.
@@ -14,32 +14,32 @@ then. Until that move:
 
 ## Project config
 
-One file at the project root holds the project's settings: `living-spec.config.ts`, or
-`living-spec.config.mts` in a project whose `package.json` isn't `"type": "module"` (Node then loads it as
+One file at the project root holds the project's settings: `zucchini.config.ts`, or
+`zucchini.config.mts` in a project whose `package.json` isn't `"type": "module"` (Node then loads it as
 an ES module without a warning). The catalog command, the contract linter and the Storybook plugin read it
 from the working directory; command-line flags and plugin options override it. Without a config file, the
 defaults apply. Paths are relative to the project root.
 
 ```ts
-// living-spec.config.ts
-import { defineConfig } from 'living-spec'
+// zucchini.config.ts
+import { defineConfig } from '@camperoni/zucchini'
 
 export default defineConfig({
   contracts: 'src', // the folder holding the contracts and their stories
-  catalog: 'docs/living-spec', // where the catalog command writes steps.json and steps.md
+  catalog: 'docs/zucchini', // where the catalog command writes steps.json and steps.md
   projectSteps: 'test/projectSteps.ts', // optional: a module exporting `projectSteps`
-  results: 'test-results/living-spec.json', // the results file the runner writes and the spec view reads
+  results: 'test-results/zucchini.json', // the results file the runner writes and the spec view reads
   testIdAttribute: 'data-testid', // the attribute the steps look elements up by
 })
 ```
 
-| Setting           | Default                         | Read by                          | Overridden by                                        |
-| ----------------- | ------------------------------- | -------------------------------- | ---------------------------------------------------- |
-| `contracts`       | `src`                           | linter, Storybook plugin, runner | `lint.ts --root`, plugin option `dir`                |
-| `catalog`         | `docs/living-spec`              | catalog command, linter          | `catalog.ts --out`, `lint.ts --catalog <steps.json>` |
-| `projectSteps`    | none                            | catalog command, runner          | `catalog.ts --project-steps`                         |
-| `results`         | `test-results/living-spec.json` | Storybook plugin, runner         | plugin option `results`                              |
-| `testIdAttribute` | `data-testid`                   | runner                           |                                                      |
+| Setting           | Default                      | Read by                          | Overridden by                                        |
+| ----------------- | ---------------------------- | -------------------------------- | ---------------------------------------------------- |
+| `contracts`       | `src`                        | linter, Storybook plugin, runner | `lint.ts --root`, plugin option `dir`                |
+| `catalog`         | `docs/zucchini`              | catalog command, linter          | `catalog.ts --out`, `lint.ts --catalog <steps.json>` |
+| `projectSteps`    | none                         | catalog command, runner          | `catalog.ts --project-steps`                         |
+| `results`         | `test-results/zucchini.json` | Storybook plugin, runner         | plugin option `results`                              |
+| `testIdAttribute` | `data-testid`                | runner                           |                                                      |
 
 An unknown setting, or one that isn't a string, is an error.
 
@@ -50,7 +50,7 @@ exports them as `projectSteps`:
 
 ```ts
 // test/projectSteps.ts
-import type { StepDefinition } from 'living-spec'
+import type { StepDefinition } from '@camperoni/zucchini'
 
 export const projectSteps: StepDefinition[] = [
   {
@@ -70,7 +70,7 @@ project steps, and the linter, which checks contracts against the catalog, accep
 them next to the library's (see [Registering the steps](#registering-the-steps)).
 `bin/fixtures/project/` is a small project set up this way.
 
-Camperoni's config is `living-spec.config.mts` at the repo root. It has no project steps yet, so it leaves
+Camperoni's config is `zucchini.config.mts` at the repo root. It has no project steps yet, so it leaves
 `projectSteps` out, with a comment saying how to add them.
 
 ## Contracts
@@ -120,7 +120,7 @@ The DOM rules match the old Playwright steps:
 
 ```ts
 import { Given, Then, When } from '@cucumber/cucumber'
-import { createStepContext, registerSteps } from 'living-spec'
+import { createStepContext, registerSteps } from '@camperoni/zucchini'
 
 registerSteps(
   { Given, When, Then },
@@ -141,15 +141,15 @@ whether it comes from the library or the project) as `steps.json` and a readable
 `catalog` folder. It runs on Node's built-in TypeScript support, without a browser:
 
 ```sh
-node packages/living-spec/bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
+node bin/catalog.ts [--out <dir>] [--project-steps <module>] [--command <text>] [--check]
 ```
 
 `--out` and `--project-steps` override the config's `catalog` and `projectSteps`. `--check` writes nothing
 and exits 1 when the committed files differ from what the definitions produce; `--command` is the command
 the files, the error message and the linter tell people to run (stored as the catalog's `generatedBy`).
 
-In Camperoni the catalog is committed in `docs/living-spec/`; `npm run living-spec:catalog` regenerates it,
-and CI runs `npm run living-spec:catalog:check`.
+In Camperoni the catalog is committed in `docs/zucchini/`; `npm run zucchini:catalog` regenerates it,
+and CI runs `npm run zucchini:catalog:check`.
 
 ## Contract linter
 
@@ -171,14 +171,14 @@ catalog file and the command that regenerates it (the catalog's `generatedBy`): 
 a step definition, run it.
 
 ```sh
-node packages/living-spec/bin/lint.ts [--catalog <steps.json>] [--root <dir>]
+node bin/lint.ts [--catalog <steps.json>] [--root <dir>]
 ```
 
 `--catalog` names the catalog file to check against and `--root` the folder of contracts, overriding the
 config.
 
 Story names come from Storybook's CSF reader, an internal Storybook API; `src/contracts/stories.ts` is the
-only module that uses it. In Camperoni, `npm run living-spec:lint` lints `src/` and runs in CI.
+only module that uses it. In Camperoni, `npm run zucchini:lint` lints `src/` and runs in CI.
 
 ## Running the contracts
 
@@ -214,8 +214,8 @@ version. Everything runner-specific lives in `src/runner/`; the steps only see t
 Wiring, as in Camperoni:
 
 ```ts
-// vitest.living-spec.config.mts: the app's Vite config plus the contract projects
-export default mergeConfig(viteConfig, defineConfig({ test: { projects: await livingSpecProjects({ port: 5173 }) } }))
+// vitest.zucchini.config.mts: the app's Vite config plus the contract projects
+export default mergeConfig(viteConfig, defineConfig({ test: { projects: await zucchiniProjects({ port: 5173 }) } }))
 
 // .storybook/preview.ts
 afterEach: runStoryContracts,
@@ -223,7 +223,7 @@ parameters: { viewport: { options: { ...INITIAL_VIEWPORTS, ...contractViewports 
 ```
 
 `runStoryContracts` does nothing outside a contract run, so the normal Storybook is unaffected and doesn't
-bundle the runner. `livingSpecProjects()` takes the browsers, devices, port, extra context options (Camperoni
+bundle the runner. `zucchiniProjects()` takes the browsers, devices, port, extra context options (Camperoni
 passes its time zone) and the per-story timeout (300 s by default; Storybook's own 15 s is too short for a story
 with 11 scenarios).
 
@@ -232,24 +232,24 @@ keeps going after a failure (Ctrl-C stops it), prints each run's result and time
 Arguments after the options go to Vitest, e.g. a story file to run only that one:
 
 ```sh
-node packages/living-spec/bin/contracts.ts --config vitest.living-spec.config.mts [--browser chromium,firefox,webkit] [--device desktop,mobile]
+node bin/contracts.ts --config vitest.zucchini.config.mts [--browser chromium,firefox,webkit] [--device desktop,mobile]
 ```
 
-The browser defaults to `chromium`, the devices to both. In Camperoni: `npm run living-spec:contracts`, with
+The browser defaults to `chromium`, the devices to both. In Camperoni: `npm run zucchini:contracts`, with
 `-- --browser webkit` to pick others. Each browser needs `npx playwright install <browser>`.
 
 `bin/merge-results.ts` merges results files, such as one per browser from separate CI jobs, into the config's
 results file (or `--out`); the latest run of a pickle on a browser wins:
 
 ```sh
-node packages/living-spec/bin/merge-results.ts <results.json>... [--out <file>]
+node bin/merge-results.ts <results.json>... [--out <file>]
 ```
 
-In Camperoni's CI, `.github/workflows/contracts.yml` runs `npm run living-spec:contracts -- --browser <browser>`
+In Camperoni's CI, `.github/workflows/contracts.yml` runs `npm run zucchini:contracts -- --browser <browser>`
 in one job per browser and uploads each job's results file. `ci.yml` calls it in the E2E jobs' tiers: Chromium on
 every PR, Firefox and WebKit on release PRs. The Storybook deploy doesn't run the contracts again. Merges are
 fast-forwards, so it downloads the results of the CI runs for the commit it deploys and merges them with
-`npm run living-spec:merge-results` before `build-storybook`. The deployed docs then show the results for the
+`npm run zucchini:merge-results` before `build-storybook`. The deployed docs then show the results for the
 commit they were built from.
 
 **Quirks the runner handles,** so a change in the runner, Vitest or Storybook touches `src/runner/` only:
@@ -274,7 +274,7 @@ to a wrong one, runs the contracts of that story file, and checks that the broke
 failed.
 
 ```sh
-node packages/living-spec/bin/mutation.ts --config <vitest config> --breaks <module> \
+node bin/mutation.ts --config <vitest config> --breaks <module> \
   [--browser chromium,firefox,webkit] [--device desktop,mobile] [--break <name>]...
 ```
 
@@ -295,9 +295,9 @@ Vitest, Storybook or `@lotun/vitest-cucumber`, and when adding a kind of step or
 cover yet (add a break for it). It isn't part of CI. A `MISSED` break means a contract can pass without
 checking what it says; fix the step or the contract before trusting its passes.
 
-In Camperoni, `npm run living-spec:mutation` runs it with the breaks in `living-spec.breaks.mts`: the
+In Camperoni, `npm run zucchini:mutation` runs it with the breaks in `zucchini.breaks.mts`: the
 spike's 8, one per kind of step plus two after map interactions. It takes about 4 minutes on Chromium. Pass
-options after `--`, e.g. `npm run living-spec:mutation -- --break map-zoom` or `-- --browser webkit`.
+options after `--`, e.g. `npm run zucchini:mutation -- --break map-zoom` or `-- --browser webkit`.
 
 ## Spec view in Storybook
 
@@ -310,7 +310,7 @@ without one.
 
 - `src/view/viewModel.ts` turns a parsed feature, its bindings and optional results into the view model.
 - `src/storybook/vitePlugin.ts` builds the view models in Node and serves them as the virtual module
-  `virtual:living-spec/contracts`, in dev and in the build. It reads `contracts` and `results` from the
+  `virtual:zucchini/contracts`, in dev and in the build. It reads `contracts` and `results` from the
   config at its `root` (the working directory by default); its `dir` and `results` options override them. It uses only `resolveId`, `load` and
   `addWatchFile`, which are stable across Vite 5 to 8.
 - `src/storybook/ContractsDocsPage.tsx` is the docs page: Storybook's `DocsPage` followed by the contracts.
@@ -319,10 +319,10 @@ Wiring, as in Camperoni's `.storybook/`:
 
 ```ts
 // main.ts
-stories: [..., '../packages/living-spec/src/storybook/*.mdx'],
+stories: [..., '../node_modules/@camperoni/zucchini/src/storybook/*.mdx'],
 viteFinal: (config) => ({
   ...config,
-  plugins: [...(config.plugins ?? []), livingSpecPlugin()],
+  plugins: [...(config.plugins ?? []), zucchiniPlugin()],
 }),
 
 // preview.ts

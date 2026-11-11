@@ -5,7 +5,7 @@
 // Exits 1, naming them, when a break stayed green, didn't run, couldn't be applied, or a run failed elsewhere.
 // Runs on Node's built-in TypeScript support.
 //
-//   node packages/living-spec/bin/mutation.ts --config <vitest config> --breaks <module exporting `breaks`>
+//   node bin/mutation.ts --config <vitest config> --breaks <module exporting `breaks`>
 //     [--browser chromium,firefox,webkit] [--device desktop,mobile] [--break <name>]...
 //
 // The browser defaults to chromium, the device to desktop: one cheap run per break.

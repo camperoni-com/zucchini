@@ -21,7 +21,7 @@ export const ContractsOverview = () => {
   return (
     <Unstyled>
       <style>{SPEC_CSS}</style>
-      <section className="ls ls-overview" data-testid="living-spec-overview">
+      <section className="ls ls-overview" data-testid="zucchini-overview">
         <p className="ls-meta">
           {plural(spec.contracts.length, 'component')} with a contract, {plural(scenarios.length, 'scenario')}.{' '}
           {spec.ranAt ? `Results from ${formatTime(spec.ranAt)}.` : 'The contracts have not run yet.'}

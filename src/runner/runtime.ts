@@ -47,15 +47,15 @@ interface Runtime {
   stories: Map<string, StoryEntry>
 }
 
-const globalRef = globalThis as { __livingSpecRunner__?: Runtime }
+const globalRef = globalThis as { __zucchiniRunner__?: Runtime }
 
 /** Called once per test file by the runner's setup file. */
 export const publishRuntime = (settings: RunnerSettings, runCucumber: RunCucumber) => {
-  globalRef.__livingSpecRunner__ ??= { settings, runCucumber, stories: new Map() }
+  globalRef.__zucchiniRunner__ ??= { settings, runCucumber, stories: new Map() }
 }
 
 /** The runner, or undefined outside a contract run. */
-export const runtime = () => globalRef.__livingSpecRunner__
+export const runtime = () => globalRef.__zucchiniRunner__
 
 /** The World parameters that tie a scenario to the story it runs on. */
 export interface WorldParameters {

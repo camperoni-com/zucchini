@@ -3,7 +3,7 @@
 // fresh mount, and records every pickle's result in the results file's format.
 import { After, Before, Given, setDefaultTimeout, Then, When, World } from '@cucumber/cucumber'
 import type { GherkinDocument, Pickle } from '@cucumber/messages'
-import { projectSteps, settings } from 'virtual:living-spec/runner'
+import { projectSteps, settings } from 'virtual:zucchini/runner'
 import { commands } from 'vitest/browser'
 
 import { createStepContext } from '../steps/dom.ts'
@@ -35,7 +35,7 @@ const entryOf = (world: ContractWorld) => {
 }
 
 Before(async function (this: ContractWorld) {
-  await commands.livingSpecResetPointer()
+  await commands.zucchiniResetPointer()
   geolocationFake.reset()
   const entry = entryOf(this)
   // The story already rendered for its first scenario. Each further one gets a fresh mount, like the old
@@ -71,7 +71,7 @@ const describePickle = (doc: GherkinDocument, pickle: Pickle): { line: number; c
 
 After(async function (this: ContractWorld, { gherkinDocument, pickle, result }) {
   const { line, content } = describePickle(gherkinDocument, pickle)
-  await commands.livingSpecRecord({
+  await commands.zucchiniRecord({
     file: this.entry?.file ?? pickle.uri,
     line,
     name: pickle.name,

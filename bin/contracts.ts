@@ -3,7 +3,7 @@
 // file, replacing that browser and device's earlier ones. Keeps going after a failure, prints how each run went
 // and how long it took, and exits 1 if any failed. Runs on Node's built-in TypeScript support.
 //
-//   node packages/living-spec/bin/contracts.ts --config <vitest config> [--browser chromium,firefox,webkit]
+//   node bin/contracts.ts --config <vitest config> [--browser chromium,firefox,webkit]
 //     [--device desktop,mobile] [-- <more vitest arguments>]
 //
 // The browser defaults to chromium, the devices to both.

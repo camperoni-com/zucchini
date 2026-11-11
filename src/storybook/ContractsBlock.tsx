@@ -11,7 +11,7 @@ export const ContractsBlock = () => {
   return (
     <Unstyled>
       <style>{SPEC_CSS}</style>
-      <section className="ls" data-testid="living-spec-contracts">
+      <section className="ls" data-testid="zucchini-contracts">
         {contract ? (
           <ContractSpec contract={contract} />
         ) : (

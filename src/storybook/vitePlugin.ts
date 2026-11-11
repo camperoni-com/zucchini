@@ -6,10 +6,10 @@ import type { Plugin } from 'vite'
 import { loadConfig } from '../config/load.ts'
 import { buildSpecData } from '../view/specData.ts'
 
-export const SPEC_MODULE_ID = 'virtual:living-spec/contracts'
+export const SPEC_MODULE_ID = 'virtual:zucchini/contracts'
 const RESOLVED_ID = `\0${SPEC_MODULE_ID}`
 
-export const livingSpecPlugin = ({
+export const zucchiniPlugin = ({
   root = process.cwd(),
   dir,
   results,
@@ -24,7 +24,7 @@ export const livingSpecPlugin = ({
    */
   results?: string
 } = {}): Plugin => ({
-  name: 'living-spec',
+  name: 'zucchini',
   resolveId(id) {
     return id === SPEC_MODULE_ID ? RESOLVED_ID : undefined
   },

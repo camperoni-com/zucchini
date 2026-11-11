@@ -5,7 +5,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import type { SpecData } from '../view/specData.ts'
-import { livingSpecPlugin, SPEC_MODULE_ID } from './vitePlugin.ts'
+import { SPEC_MODULE_ID, zucchiniPlugin } from './vitePlugin.ts'
 
 const fixtureStories = path.join(__dirname, '..', 'contracts', 'fixtures', 'Badge', 'Badge.stories.ts')
 
@@ -34,7 +34,7 @@ afterEach(() => {
 
 // Calls the plugin's hooks the way Vite does, with a stand-in plugin context.
 const loadSpec = async (options: { dir?: string; results?: string }) => {
-  const plugin = livingSpecPlugin({ root, ...options })
+  const plugin = zucchiniPlugin({ root, ...options })
   const resolveId = plugin.resolveId as (id: string) => string | undefined
   const load = plugin.load as (this: { addWatchFile: (file: string) => void }, id: string) => Promise<string>
   const resolved = resolveId(SPEC_MODULE_ID)
@@ -45,7 +45,7 @@ const loadSpec = async (options: { dir?: string; results?: string }) => {
   return { spec: JSON.parse(code.replace(/^export default /, '')) as SpecData, watched }
 }
 
-describe('livingSpecPlugin', () => {
+describe('zucchiniPlugin', () => {
   test('serves the contracts and the uncovered stories as a virtual module', async () => {
     const { spec, watched } = await loadSpec({})
     expect(spec.ranAt).toBeNull()
@@ -104,7 +104,7 @@ describe('livingSpecPlugin', () => {
       })
     )
     fs.writeFileSync(
-      path.join(root, 'living-spec.config.mts'),
+      path.join(root, 'zucchini.config.mts'),
       "export default { contracts: 'contracts', results: 'out/results.json' }\n"
     )
     const { spec } = await loadSpec({})

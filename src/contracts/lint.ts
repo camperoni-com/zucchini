@@ -19,7 +19,7 @@ export interface UncoveredStories {
 
 /** Where the catalog's steps come from, named in the hint on unknown and ambiguous steps. */
 export interface CatalogSource {
-  /** The catalog file, e.g. `docs/living-spec/steps.json`. */
+  /** The catalog file, e.g. `docs/zucchini/steps.json`. */
   file: string
   /** The command that regenerates it (the catalog's `generatedBy`). */
   command: string

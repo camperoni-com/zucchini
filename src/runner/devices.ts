@@ -17,7 +17,7 @@ export const DEVICE_VIEWPORTS: Record<Device, { width: number; height: number }>
 }
 
 /** The Storybook viewport each device selects through the `viewport` global. */
-export const viewportKey = (device: Device) => `livingSpec${device[0].toUpperCase()}${device.slice(1)}`
+export const viewportKey = (device: Device) => `zucchini${device[0].toUpperCase()}${device.slice(1)}`
 
 /**
  * Storybook viewport options for the devices, to merge into the preview's `parameters.viewport.options`.
