@@ -18,7 +18,6 @@
     "demo:install": "node scripts/demo-install.mjs",
     "lint": "eslint . --max-warnings 0",
     "prepack": "tsdown --logLevel error",
-    "release": "changeset publish",
     "release:dry-run": "node scripts/publish-dry-run.mjs",
     "release:first": "npm publish --access public",
     "test": "vitest run",

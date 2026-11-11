@@ -1,5 +1,9 @@
 name: Release
 
+# Publishes the version in package.json when npm doesn't have it yet, then tags it and creates the GitHub
+# release. Versions come from a "Version packages" pull request (npm run version-packages; see RELEASING.md):
+# the organization doesn't let workflows open pull requests, so a person or an agent opens it.
+
 on:
   push:
     branches: [main]
@@ -9,17 +13,21 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
+  # The release tag and the GitHub release.
   contents: write
-  pull-requests: write
   # npm trusted publishing (OIDC) and provenance.
   id-token: write
 
 jobs:
-  release:
-    name: Version or publish
+  publish:
+    name: Publish to npm
+    # Off until npm's trusted publisher is configured and the NPM_PUBLISH repository variable is "true".
+    if: ${{ vars.NPM_PUBLISH == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           # npm 11.5.1 or later publishes through a trusted publisher; Node 24 ships it.
@@ -27,15 +35,26 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm ci
-      # With changesets on main, opens (or updates) the "Version packages" PR. Once that PR is merged, publishes
-      # the new version to npm. Publishing stays off until the NPM_PUBLISH repository variable is "true", which
-      # is set once npm's trusted publisher is configured (see RELEASING.md); until then this job only versions.
-      - uses: changesets/action@v1
-        with:
-          version: npm run version-packages
-          publish: ${{ vars.NPM_PUBLISH == 'true' && 'npm run release' || '' }}
-          title: Version packages
-          commit: 'chore: version packages'
+      # Does nothing when npm already has this version. A prerelease (in Changesets' pre mode) goes to `next`.
+      - run: npx changeset publish --no-git-tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'
+      - name: Tag the release and create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if ! npm view "@camperoni/zucchini@$version" version > /dev/null 2>&1; then
+            echo "npm doesn't have $version; nothing to release."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            echo "v$version is already tagged."
+            exit 0
+          fi
+          git tag "v$version"
+          git push origin "v$version"
+          node scripts/release-notes.mjs > release-notes.md
+          prerelease=""
+          case "$version" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "v$version" --title "v$version" --notes-file release-notes.md $prerelease

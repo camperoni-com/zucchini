@@ -7,13 +7,21 @@ and workflow that built it.
 ## How a release happens
 
 1. Pull requests that change what users get add a changeset (`npx changeset`).
-2. On every push to `main`, the Release workflow opens or updates a **"Version packages"** pull request. It
-   bumps the version and moves the changesets into `CHANGELOG.md`.
-3. Merging that pull request publishes the new version to npm and creates the GitHub release.
+2. When it's time to release, open a **"Version packages"** pull request: on a branch from `main`, run
 
-Pull requests opened by the workflow don't trigger the CI workflow (a GitHub rule for its own token). The
-"Version packages" pull request only changes the version, the changelog and the lockfile, and CI runs on `main`
-after the merge.
+   ```sh
+   npm run version-packages
+   ```
+
+   It bumps the version and moves the changesets into `CHANGELOG.md`. Commit the result (signed off) and open
+   the pull request. CI checks it like any other.
+
+3. Merging it publishes the new version to npm, tags it `v<version>` and creates the GitHub release with the
+   version's changelog section.
+
+The Release workflow runs on every push to `main` and does nothing when npm already has the version in
+`package.json`. (A workflow can't open the "Version packages" pull request itself here: the organization doesn't
+let workflows create pull requests.)
 
 ## Prereleases
 
@@ -21,8 +29,8 @@ To publish prereleases under npm's `next` tag, for example to try a change in a 
 
 ```sh
 npx changeset pre enter next   # versions become 0.2.0-next.0, 0.2.0-next.1, ...
-# merge pull requests with changesets as usual; each "Version packages" merge publishes to `next`
-npx changeset pre exit         # the next "Version packages" merge publishes the release to `latest`
+# release as usual: each "Version packages" merge publishes to `next`
+npx changeset pre exit         # the next "Version packages" merge publishes to `latest`
 ```
 
 Install a prerelease with `npm install @camperoni/zucchini@next`.
@@ -47,6 +55,8 @@ by a maintainer of the `camperoni` npm organization:
 3. On npmjs.com, open the package's **Settings → Trusted publishing** and add a GitHub Actions publisher:
    organization `camperoni-com`, repository `zucchini`, workflow `release.yml`, no environment.
 4. In the GitHub repository's **Settings → Secrets and variables → Actions → Variables**, set `NPM_PUBLISH` to
-   `true`. Until then the Release workflow only opens "Version packages" pull requests and never publishes.
+   `true`. Until then the Release workflow does nothing.
+5. Re-run the Release workflow's latest run on `main` (or push anything to `main`): it finds `0.1.0` on npm,
+   tags it `v0.1.0` and creates the GitHub release.
 
 From then on, releases happen as described above.
