@@ -72,8 +72,8 @@ project steps, the linter accepts them, and the runner registers them next to th
 
 A component's contract is a Gherkin feature file beside its stories:
 
-- `<Component>.feature` sits beside `<Component>.stories.tsx` and covers the story file whose title ends in
-  `<Component>`;
+- `<Component>.feature` sits beside `<Component>.stories.tsx` and covers the story file whose title's last
+  segment is `<Component>` (`Cards/Badge` for `Badge.feature`, not `Cards/MyBadge`);
 - a `@story:Story_Name` tag binds a scenario to one story (`_` stands for a space, since Gherkin tags can't
   contain one);
 - a `story` column in an outline's Examples binds each row to the story it names, so one scenario can run on

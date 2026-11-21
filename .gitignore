@@ -4,3 +4,5 @@ coverage/
 test-results/
 *.tgz
 .DS_Store
+# Design briefs, drafts and review reports (see AGENTS.md)
+.egm/

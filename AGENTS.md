@@ -19,6 +19,20 @@ Instructions for AI coding agents, and a quick map for anyone new. People should
 - **Public text is for strangers.** README, docs, issues, pull requests and commit messages explain things for
   someone who has never seen the project.
 
+## Designing larger features
+
+Larger features are designed before they're built, with the [Elephant-Goldfish Model](https://egm.dev) (EGM): the
+agent that knows the project drafts a design doc, and fresh reviewers that never saw the conversation check it
+against the code. A small fix doesn't need this; go straight to tests first.
+
+- Approved designs live in [`docs/designs/`](docs/designs/SITEMAP.md), one file per feature, listed in its
+  `SITEMAP.md`. Build from the design, and keep the design and the code in step when either changes.
+- Briefs, drafts and review reports are working files, not part of the repo:
+
+  EGM artifact directory: .egm
+
+- The EGM plugin is optional. Without it, a design doc in `docs/designs/` is still how a larger change is proposed.
+
 ## Checks
 
 | Command                   | What it checks                                                         |
@@ -50,6 +64,11 @@ In `examples/demo`: `npm run contracts -- --browser chromium`, `npm run mutation
 | `test/packed`   | The packed-install test.                                                      |
 | `examples/demo` | The demo Storybook: showcase, end-to-end test and the live site's source.     |
 | `docs`          | Reference and mutation-check docs.                                            |
+| `docs/designs`  | Approved feature designs, indexed in `SITEMAP.md`.                            |
+
+Each folder in `src` has a `README.md` with its interface, invariants and side effects; [`src/README.md`](src/README.md)
+ties them together. Read the folder's README before changing code there, and update it in the same change when the
+interface, an invariant or a side effect changes.
 
 ## Things that bite
 
